@@ -5,7 +5,7 @@ This is the client side JS of PWD that allows to run terminals and attach them t
 
 ## Using the SDK
 
-Here's a minimal example of a minimal site:
+Here's a minimal example of the SDK usage:
 
 
 ```html
