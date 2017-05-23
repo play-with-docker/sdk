@@ -1,0 +1,29 @@
+{
+  "name": "sdk",
+  "version": "1.0.0",
+  "description": "PWD sdk",
+  "main": "sdk.js",
+  "scripts": {
+    "build": "webpack -p"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/play-with-docker/sdk.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/play-with-docker/sdk/issues"
+  },
+  "homepage": "https://github.com/play-with-docker/sdk#readme",
+  "devDependencies": {
+    "css-loader": "^0.28.2",
+    "style-loader": "^0.18.0",
+    "webpack": "^2.6.0"
+  },
+  "dependencies": {
+    "socket.io-client": "^2.0.1",
+    "xterm": "^2.6.0"
+  }
+}

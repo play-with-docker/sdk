@@ -1,3 +1,8 @@
+import Terminal from 'xterm'
+import fit from 'xterm/lib/addons/fit/fit.js'
+import * as io from 'socket.io-client'
+import 'xterm/dist/xterm.css'
+
 (function (window) {
 
   'use strict';
@@ -224,7 +229,7 @@
     var elements = document.querySelectorAll(term.selector);
     for (var n=0; n < elements.length; ++n) {
       var t = new Terminal({cursorBlink: false});
-      t.open(elements[n]);
+      t.open(elements[n], {focus: true});
       t.on('data', function(d) {
         self.socket.emit('terminal in', i.name, d);
       });
