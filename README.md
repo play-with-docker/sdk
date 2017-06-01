@@ -34,8 +34,40 @@ To make development easier, run `npm install && npm run dev`. All file changes w
 
 ## Events
 
-The SDK provides the ability to listen to various events. The events are outlined below
+The SDK provides the ability to listen to various events.
+
+### Available Events
+
+More events will be added over time. If you have a request, file an issue with your request!
 
 | Event Name         | Arguments       | Description                            |
 |--------------------|-----------------|----------------------------------------|
 | `instance.new`     | instanceDetails | Invoked when a new instance is created |
+
+
+### Events API
+
+#### `pwd.on(eventName, callback)`
+
+Add a listener to the provided event name. Returns the pwd object to allow chaining.
+
+**Example:**
+
+```
+pwd.on('instance.new', onNewInstance);
+
+function onNewInstance(instanceDetails) { 
+    console.log("New instance with name: " + instanceDetails.name);
+}
+```
+
+
+#### `pwd.off(eventName, callback)`
+
+Remove an event listener. Returns the pwd object to allow chaining.
+
+**Example:**
+
+```
+pwd.off('instance.new', onNewInstance);
+```
