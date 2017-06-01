@@ -2,6 +2,7 @@ import Terminal from 'xterm'
 import fit from 'xterm/lib/addons/fit/fit.js'
 import * as io from 'socket.io-client'
 import 'xterm/dist/xterm.css'
+import * as Emitter from 'tiny-emitter';
 
 (function (window) {
 
@@ -97,6 +98,7 @@ import 'xterm/dist/xterm.css'
   var pwd = function () {
     this.instances = {};
     this.instanceBuffer = {};
+    this.eventEmitter = new Emitter();
     return;
   };
 
@@ -176,6 +178,29 @@ import 'xterm/dist/xterm.css'
         }
       }
     }
+  };
+
+  /**
+   * Register a new event listener.
+   * @param eventName The event name to listen to
+   * @param callback A callback to be notified when the event is emitted
+   * @return the PWD object
+   */
+  pwd.prototype.on = function(eventName, callback) {
+    this.eventEmitter.on(eventName, callback);
+    return this;
+  };
+
+  /**
+   * Remove either a single event listener or all listeners for an event.
+   * If only the name is provided, all event listeners are removed.
+   * @param eventName The subject event name
+   * @param callback An optional callback to be removed.
+   * @return the PWD object
+   */
+  pwd.prototype.off = function(eventName, callback) {
+    this.eventEmitter.off(eventName, callback);
+    return this;
   };
 
 
