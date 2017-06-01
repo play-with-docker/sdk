@@ -26,3 +26,7 @@ Here's a minimal example of the SDK usage:
 ## Building the SDK
 
 Clone this repo and run `npm install && npm run build`
+
+## Development
+
+To make development easier, run `npm install && npm run dev`. All file changes will automatically trigger a Webpack build.

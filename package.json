@@ -4,7 +4,8 @@
   "description": "PWD sdk",
   "main": "sdk.js",
   "scripts": {
-    "build": "webpack -p"
+    "build": "webpack -p",
+    "dev": "webpack --watch"
   },
   "repository": {
     "type": "git",
