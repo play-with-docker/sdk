@@ -2,6 +2,7 @@ import Terminal from 'xterm'
 import fit from 'xterm/lib/addons/fit/fit.js'
 import * as io from 'socket.io-client'
 import 'xterm/dist/xterm.css'
+import * as Emitter from 'tiny-emitter';
 
 (function (window) {
 
@@ -97,6 +98,7 @@ import 'xterm/dist/xterm.css'
   var pwd = function () {
     this.instances = {};
     this.instanceBuffer = {};
+    this.eventEmitter = new Emitter();
     return;
   };
 
@@ -118,6 +120,7 @@ import 'xterm/dist/xterm.css'
     } else {
       console.warn('No terms specified, nothing to do.');
     }
+    return this;
   };
 
   // your sdk init function
@@ -158,7 +161,7 @@ import 'xterm/dist/xterm.css'
         var i = session.instances[name];
         // Setup empty terms
         i.terms = [];
-        self.instances[name] = i;
+        registerInstance(self, name, i);
       }
       !callback || callback();
     });
@@ -176,6 +179,29 @@ import 'xterm/dist/xterm.css'
         }
       }
     }
+  };
+
+  /**
+   * Register a new event listener.
+   * @param eventName The event name to listen to
+   * @param callback A callback to be notified when the event is emitted
+   * @return the PWD object
+   */
+  pwd.prototype.on = function(eventName, callback) {
+    this.eventEmitter.on(eventName, callback);
+    return this;
+  };
+
+  /**
+   * Remove either a single event listener or all listeners for an event.
+   * If only the name is provided, all event listeners are removed.
+   * @param eventName The subject event name
+   * @param callback An optional callback to be removed.
+   * @return the PWD object
+   */
+  pwd.prototype.off = function(eventName, callback) {
+    this.eventEmitter.off(eventName, callback);
+    return this;
   };
 
 
@@ -202,6 +228,11 @@ import 'xterm/dist/xterm.css'
     }
   };
 
+  function registerInstance(pwd, name, instanceMetadata) {
+    pwd.instances[name] = instanceMetadata;
+    pwd.eventEmitter.emit("instance.new", instanceMetadata);
+  }
+
   pwd.prototype.createInstance = function(callback) {
     var self = this;
     //TODO handle http connection errors
@@ -209,7 +240,7 @@ import 'xterm/dist/xterm.css'
       if (response.status == 200) {
         var i = JSON.parse(response.responseText);
         i.terms = [];
-        self.instances[i.name] = i;
+        registerInstance(self, i.name, i);
         callback(undefined, i);
       } else if (response.status == 409) {
         var err = new Error();

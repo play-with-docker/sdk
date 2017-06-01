@@ -4,7 +4,8 @@
   "description": "PWD sdk",
   "main": "sdk.js",
   "scripts": {
-    "build": "webpack -p"
+    "build": "webpack -p",
+    "dev": "webpack --watch"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,7 @@
   },
   "dependencies": {
     "socket.io-client": "^2.0.1",
+    "tiny-emitter": "^2.0.0",
     "xterm": "^2.6.0"
   }
 }
