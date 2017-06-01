@@ -120,6 +120,7 @@ import * as Emitter from 'tiny-emitter';
     } else {
       console.warn('No terms specified, nothing to do.');
     }
+    return this;
   };
 
   // your sdk init function
@@ -160,7 +161,7 @@ import * as Emitter from 'tiny-emitter';
         var i = session.instances[name];
         // Setup empty terms
         i.terms = [];
-        self.instances[name] = i;
+        registerInstance(self, name, i);
       }
       !callback || callback();
     });
@@ -227,6 +228,11 @@ import * as Emitter from 'tiny-emitter';
     }
   };
 
+  function registerInstance(pwd, name, instanceMetadata) {
+    pwd.instances[name] = instanceMetadata;
+    pwd.eventEmitter.emit("instance.new", instanceMetadata);
+  }
+
   pwd.prototype.createInstance = function(callback) {
     var self = this;
     //TODO handle http connection errors
@@ -234,7 +240,7 @@ import * as Emitter from 'tiny-emitter';
       if (response.status == 200) {
         var i = JSON.parse(response.responseText);
         i.terms = [];
-        self.instances[i.name] = i;
+        registerInstance(self, i.name, i);
         callback(undefined, i);
       } else if (response.status == 409) {
         var err = new Error();

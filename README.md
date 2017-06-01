@@ -30,3 +30,12 @@ Clone this repo and run `npm install && npm run build`
 ## Development
 
 To make development easier, run `npm install && npm run dev`. All file changes will automatically trigger a Webpack build.
+
+
+## Events
+
+The SDK provides the ability to listen to various events. The events are outlined below
+
+| Event Name         | Arguments       | Description                            |
+|--------------------|-----------------|----------------------------------------|
+| `instance.new`     | instanceDetails | Invoked when a new instance is created |
