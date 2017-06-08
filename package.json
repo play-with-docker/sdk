@@ -23,6 +23,7 @@
     "webpack": "^2.6.0"
   },
   "dependencies": {
+    "async-es": "^2.4.1",
     "socket.io-client": "^2.0.1",
     "xterm": "^2.6.0"
   }

@@ -2,6 +2,8 @@ import Terminal from 'xterm'
 import fit from 'xterm/lib/addons/fit/fit.js'
 import * as io from 'socket.io-client'
 import 'xterm/dist/xterm.css'
+import async from 'async-es';
+
 
 (function (window) {
 
@@ -32,24 +34,27 @@ import 'xterm/dist/xterm.css'
         var sessionData = JSON.parse(resp.responseText);
         self.opts.baseUrl = 'http://' + sessionData.hostname;
         self.init(sessionData.session_id, self.opts);
-        self.terms.forEach(function(term) {
-
+        async.each(Object.keys(self.conf.instances), function(instanceName, cb) {
           // Create terminals only for those elements that exist at least once in the DOM
-          if (document.querySelector(term.selector)) {
-            self.terminal(function() {
+          if (document.querySelector('.pwd-' + instanceName)) {
+            self.terminal(instanceName, function() {
               //Remove captchas after initializing terminals;
-              var captcha = document.querySelectorAll(term.selector + ' .captcha');
+              var captcha = document.querySelectorAll('.pwd-' + instanceName + ' .captcha');
               for (var n=0; n < captcha.length; ++n) {
                 captcha[n].parentNode.removeChild(captcha[n]);
               }
+              cb();
             });
           }
 
+        }, function() {
+            registerPortHandlers.call(self)
+            registerInputHandlers.call(self);
         });
       } else if (resp.status == 403) {
         // Forbidden, we need to display te captcha
-        var term = window.pwd.terms[0];
-        var els = document.querySelectorAll(term.selector);
+        var instanceName = Object.keys(window.pwd.pwd.instances)[0];
+        var els = document.querySelectorAll('.pwd-' + instanceName);
         for (var n=0; n < els.length; ++n) {
           var captcha = document.createElement('div');
           captcha.className = 'captcha';
@@ -66,25 +71,32 @@ import 'xterm/dist/xterm.css'
     verifyCallback.call(window.pwd);
   }
 
-  function registerInputHandlers(termName, instance) {
+  function registerInputHandlers() {
     var self = this;
     // Attach block actions
-    var actions = document.querySelectorAll('code[class*="'+termName+'"]');
+    var actions = document.querySelectorAll('[data-pwd-instance]');
     for (var n=0; n < actions.length; ++n) {
-      actions[n].onclick = function() {
+      var action = actions[n];
+      var instanceName = action.getAttribute('data-pwd-instance');
+      var instance = self.conf.instances[instanceName].instance;
+      action.onclick = function() {
         self.socket.emit('terminal in', instance.name, this.innerText);
       };
+      action.style.cursor = 'pointer';
     }
   }
 
-  function registerPortHandlers(termName, instance) {
+  function registerPortHandlers() {
     var self = this;
     // Attach block actions
-    var actions = document.querySelectorAll('[data-term*="'+termName+'"]');
+    var actions = document.querySelectorAll('[data-pwd-instance]');
     for (var n=0; n < actions.length; ++n) {
-      actions[n].onclick = function(evt) {
+      var action = actions[n];
+      var instanceName = action.getAttribute('data-pwd-instance');
+      var instance = self.conf.instances[instanceName].instance;
+      action.onclick = function(evt) {
         evt.preventDefault();
-        var port = this.getAttribute("data-port");
+        var port = this.getAttribute("data-pwd-instance-port");
         if (port) {
           window.open('//pwd'+ instance.ip.replace(/\./g, "-") + '-' + port + '.' + self.opts.baseUrl.split('/')[2] + this.pathname, '_blank');
         }
@@ -109,14 +121,14 @@ import 'xterm/dist/xterm.css'
     this.opts.ImageName = this.opts.ImageName || '';
   }
 
-  pwd.prototype.newSession = function(terms, opts) {
+  pwd.prototype.newSession = function(conf, opts) {
     setOpts.call(this, opts);
-    terms = terms || [];
-    if (terms.length > 0) {
-      this.terms = terms;
+    conf = conf || {};
+    if (conf.instances) {
+      this.conf = conf;
       injectScript('https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit');
     } else {
-      console.warn('No terms specified, nothing to do.');
+      console.warn('No instances specified, nothing to do.');
     }
   };
 
@@ -202,13 +214,18 @@ import 'xterm/dist/xterm.css'
     }
   };
 
-  pwd.prototype.createInstance = function(callback) {
+  pwd.prototype.createInstance = function(instanceName, callback) {
     var self = this;
     //TODO handle http connection errors
-    sendRequest('POST', self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances', {headers:{'Content-type':'application/json'}}, {ImageName: self.opts.ImageName}, function(response) {
+    var instanceConf = self.conf.instances[instanceName] | {image: ''};
+    sendRequest('POST', self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances', {headers:{'Content-type':'application/json'}}, {Hostname: instanceName, ImageName: instanceConf.image}, function(response) {
       if (response.status == 200) {
         var i = JSON.parse(response.responseText);
         i.terms = [];
+        if (!self.conf.instances[instanceName]) {
+            self.conf.instances[instanceName] = {};
+        }
+        self.conf.instances[instanceName].instance = i;
         self.instances[i.name] = i;
         callback(undefined, i);
       } else if (response.status == 409) {
@@ -221,12 +238,11 @@ import 'xterm/dist/xterm.css'
     });
   }
 
-  pwd.prototype.createTerminal = function(term, name) {
+  pwd.prototype.createTerminal = function(instanceName, i) {
     var self = this;
-    var i = this.instances[name];
-    term.name = term.name || term.selector;
 
-    var elements = document.querySelectorAll(term.selector);
+
+    var elements = document.querySelectorAll('.pwd-' + instanceName);
     for (var n=0; n < elements.length; ++n) {
       var t = new Terminal({cursorBlink: false});
       t.open(elements[n], {focus: true});
@@ -238,27 +254,20 @@ import 'xterm/dist/xterm.css'
       i.terms.push(t);
     }
 
-
-    registerPortHandlers.call(self, term.name, i)
-
-    registerInputHandlers.call(self, term.name, i);
-
-
-
-    if (self.instanceBuffer[name]) {
+    if (self.instanceBuffer[instanceName]) {
       //Flush buffer and clear it
       i.terms.forEach(function(term){
-        term.write(self.instanceBuffer[name]);
+        term.write(self.instanceBuffer[instanceName]);
       });
-      self.instanceBuffer[name] = '';
+      self.instanceBuffer[instanceName] = '';
     }
 
     return i.terms;
   }
 
-  pwd.prototype.terminal = function(callback) {
+  pwd.prototype.terminal = function(instanceName, callback) {
     var self = this;
-    this.createInstance(function(err, instance) {
+    this.createInstance(instanceName, function(err, instance) {
       if (err && err.max) {
         !callback || callback(new Error("Max instances reached"))
         return
@@ -267,8 +276,7 @@ import 'xterm/dist/xterm.css'
         return
       }
 
-      var instance_number = instance.name[instance.name.length -1 ];
-      self.createTerminal(self.terms[instance_number - 1], instance.name);
+      self.createTerminal(instanceName, instance);
 
 
       !callback || callback(undefined, instance);
