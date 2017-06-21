@@ -195,7 +195,7 @@ import 'xterm/dist/xterm.css'
     request.onload = function() {
       callback(request);
     };
-    if (typeof(data) === 'object') {
+    if (typeof(data) === 'object' && data.constructor.name != 'FormData') {
       request.send(JSON.stringify(data));
     } else {
       request.send(data);
@@ -217,6 +217,22 @@ import 'xterm/dist/xterm.css'
         callback(err);
       } else {
         callback(new Error());
+      }
+    });
+  }
+
+  pwd.prototype.upload = function(name, data, callback) {
+    var self = this;
+
+    sendRequest('POST', self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances/' + name + '/uploads', {}, data, function(response) {
+      if (response.status == 200) {
+        if (callback) {
+            callback(undefined);
+        }
+      } else {
+        if (callback) {
+            callback(new Error());
+        }
       }
     });
   }
