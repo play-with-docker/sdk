@@ -22,6 +22,11 @@ Here's a minimal example of the SDK usage:
     </body>
 </html>
 ```
+You can easily test this out by running the following from the root directory of this project on Linux or Mac:
+```
+docker run --name sdktest -v $PWD:/usr/share/nginx/html:ro -d -it -p 8080:80 nginx```
+and then browse to [localhost:8080](http://localhost:8080).
+
 
 ## Building the SDK
 
