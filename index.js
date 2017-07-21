@@ -237,6 +237,22 @@ import 'xterm/dist/xterm.css'
     });
   }
 
+  pwd.prototype.exec = function(name, data, callback) {
+    var self = this;
+
+    sendRequest('POST', self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances/' + name + '/exec', {headers:{'Content-type':'application/json'}}, {command: data}, function(response) {
+      if (response.status == 200) {
+        if (callback) {
+            callback(undefined);
+        }
+      } else {
+        if (callback) {
+            callback(new Error());
+        }
+      }
+    });
+  }
+
   pwd.prototype.createTerminal = function(term, name) {
     var self = this;
     var i = this.instances[name];
