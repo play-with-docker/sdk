@@ -23,6 +23,11 @@ Here's a minimal example of the SDK usage:
 </html>
 ```
 
+If you are running [Play with Docker](https://github.com/play-with-docker/play-with-docker) locally (which saves resources on our production machines) create the new session with an additional option:
+```
+pwd.newSession([{selector: '#myTerm'}], {baseUrl: 'http://localhost'});
+```
+
 ## Building the SDK
 
 Clone this repo and run `npm install && npm run build`
