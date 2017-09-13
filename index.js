@@ -72,7 +72,7 @@ import 'xterm/dist/xterm.css'
     var actions = document.querySelectorAll('code[class*="'+termName+'"]');
     for (var n=0; n < actions.length; ++n) {
       actions[n].onclick = function() {
-        self.socket.emit('terminal in', instance.name, this.innerText);
+        self.socket.emit('instance terminal in', instance.name, this.innerText);
       };
     }
   }
@@ -126,7 +126,7 @@ import 'xterm/dist/xterm.css'
     setOpts.call(this, opts);
     this.sessionId = sessionId;
     this.socket = io(this.opts.baseUrl, {path: '/sessions/' + sessionId + '/ws' });
-    this.socket.on('terminal out', function(name ,data) {
+    this.socket.on('instance terminal out', function(name ,data) {
       var instance = self.instances[name];
       if (instance && instance.terms) {
         instance.terms.forEach(function(term) {term.write(data)});
@@ -138,7 +138,7 @@ import 'xterm/dist/xterm.css'
     });
 
     // Resize all terminals
-    this.socket.on('viewport resize', function(cols, rows) {
+    this.socket.on('instance viewport resize', function(cols, rows) {
       // Resize all terminals
       for (var name in self.instances) {
         self.instances[name].terms.forEach(function(term){
@@ -168,11 +168,14 @@ import 'xterm/dist/xterm.css'
   pwd.prototype.resize = function() {
     var name = Object.keys(this.instances)[0]
     for (var n in this.instances) {
-      for (var i = 0; i < this.instances[n].terms.length; i ++) {
-        var term = this.instances[n].terms[i];
-        var size = term.proposeGeometry();
-        if (size.cols && size.rows) {
-          return this.socket.emit('viewport resize', size.cols, size.rows);
+      // there might be some instances without terminals
+      if (this.instances[n].terms) {
+        for (var i = 0; i < this.instances[n].terms.length; i ++) {
+          var term = this.instances[n].terms[i];
+          var size = term.proposeGeometry();
+          if (size.cols && size.rows) {
+            return this.socket.emit('instance viewport resize', size.cols, size.rows);
+          }
         }
       }
     }
@@ -237,6 +240,23 @@ import 'xterm/dist/xterm.css'
     });
   }
 
+
+  pwd.prototype.setup = function(data, callback) {
+    var self = this;
+
+    sendRequest('POST', self.opts.baseUrl + '/sessions/' + this.sessionId + '/setup', {headers:{'Content-type':'application/json'}}, data, function(response) {
+      if (response.status == 200) {
+        if (callback) {
+            callback(undefined);
+        }
+      } else {
+        if (callback) {
+            callback(new Error());
+        }
+      }
+    });
+  }
+
   pwd.prototype.exec = function(name, data, callback) {
     var self = this;
 
@@ -263,19 +283,20 @@ import 'xterm/dist/xterm.css'
       var t = new Terminal({cursorBlink: false});
       t.open(elements[n], {focus: true});
       t.on('data', function(d) {
-        self.socket.emit('terminal in', i.name, d);
+        self.socket.emit('instance terminal in', i.name, d);
       });
-      var size = t.proposeGeometry();
-      self.socket.emit('viewport resize', size.cols, size.rows);
+
+      if (!i.terms) {
+        i.terms = [];
+      }
       i.terms.push(t);
+      self.resize();
     }
 
 
     registerPortHandlers.call(self, term.name, i)
 
     registerInputHandlers.call(self, term.name, i);
-
-
 
     if (self.instanceBuffer[name]) {
       //Flush buffer and clear it
