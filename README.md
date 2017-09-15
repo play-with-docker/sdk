@@ -31,9 +31,9 @@ pwd.newSession([{selector: '#myTerm'}], {baseUrl: 'http://localhost'});
 You can easily test your page with the SDK by running the following from the root directory of this project on Linux or Mac:
 
 ```
-docker run --name sdktest -v $PWD:/usr/share/nginx/html:ro -d -it -p 8080:80 nginx```
-and then browse to [localhost:8080](http://localhost:8080).
+docker run --name sdktest -v $PWD:/usr/share/nginx/html:ro -d -it -p 8080:80 nginx
 ```
+and then browse to [localhost:8080](http://localhost:8080).
 
 
 ## Building the SDK
