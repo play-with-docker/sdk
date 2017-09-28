@@ -205,10 +205,11 @@ import 'xterm/dist/xterm.css'
     }
   };
 
-  pwd.prototype.createInstance = function(callback) {
+  pwd.prototype.createInstance = function(opts, callback) {
     var self = this;
+    opts.ImageName = opts.ImageName || self.opts.ImageName;
     //TODO handle http connection errors
-    sendRequest('POST', self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances', {headers:{'Content-type':'application/json'}}, {ImageName: self.opts.ImageName}, function(response) {
+    sendRequest('POST', self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances', {headers:{'Content-type':'application/json'}}, opts, function(response) {
       if (response.status == 200) {
         var i = JSON.parse(response.responseText);
         i.terms = [];
@@ -311,7 +312,7 @@ import 'xterm/dist/xterm.css'
 
   pwd.prototype.terminal = function(callback) {
     var self = this;
-    this.createInstance(function(err, instance) {
+    this.createInstance({}, function(err, instance) {
       if (err && err.max) {
         !callback || callback(new Error("Max instances reached"))
         return
