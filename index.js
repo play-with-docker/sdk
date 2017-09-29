@@ -86,7 +86,7 @@ import 'xterm/dist/xterm.css'
         evt.preventDefault();
         var port = this.getAttribute("data-port");
         if (port) {
-          window.open('//pwd'+ instance.ip.replace(/\./g, "-") + '-' + port + '.' + self.opts.baseUrl.split('/')[2] + this.pathname, '_blank');
+          window.open('//pwd'+ instance.ip.replace(/\./g, "-") + '-' + port + '.' + self.opts.baseUrl.split('/')[2] + this.attributes.href.value, '_blank');
         }
       };
     }
