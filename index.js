@@ -31,20 +31,19 @@ import 'xterm/dist/xterm.css'
       if (resp.status == 200) {
         var sessionData = JSON.parse(resp.responseText);
         self.opts.baseUrl = 'http://' + sessionData.hostname;
-        self.init(sessionData.session_id, self.opts);
-        self.terms.forEach(function(term) {
-
-          // Create terminals only for those elements that exist at least once in the DOM
-          if (document.querySelector(term.selector)) {
-            self.terminal(function() {
-              //Remove captchas after initializing terminals;
-              var captcha = document.querySelectorAll(term.selector + ' .captcha');
-              for (var n=0; n < captcha.length; ++n) {
-                captcha[n].parentNode.removeChild(captcha[n]);
-              }
-            });
-          }
-
+        self.init(sessionData.session_id, self.opts, function() {
+          self.terms.forEach(function(term) {
+            // Create terminals only for those elements that exist at least once in the DOM
+            if (document.querySelector(term.selector)) {
+              self.terminal(function() {
+                //Remove captchas after initializing terminals;
+                var captcha = document.querySelectorAll(term.selector + ' .captcha');
+                for (var n=0; n < captcha.length; ++n) {
+                  captcha[n].parentNode.removeChild(captcha[n]);
+                }
+              });
+            }
+          });
         });
       } else if (resp.status == 403) {
         // Forbidden, we need to display te captcha
