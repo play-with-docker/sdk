@@ -30,12 +30,13 @@ import 'xterm/dist/xterm.css'
       //TODO handle errors
       if (resp.status == 200) {
         var sessionData = JSON.parse(resp.responseText);
-        self.opts.baseUrl = 'http://' + sessionData.hostname;
+        // fetch current scheme from opts to use in the new session hostname
+        self.opts.baseUrl = self.opts.baseUrl.split('/')[0] + '//' + sessionData.hostname;
         self.init(sessionData.session_id, self.opts, function() {
           self.terms.forEach(function(term) {
             // Create terminals only for those elements that exist at least once in the DOM
             if (document.querySelector(term.selector)) {
-              self.terminal(function() {
+              self.terminal(term, function() {
                 //Remove captchas after initializing terminals;
                 var captcha = document.querySelectorAll(term.selector + ' .captcha');
                 for (var n=0; n < captcha.length; ++n) {
@@ -309,9 +310,9 @@ import 'xterm/dist/xterm.css'
     return i.terms;
   }
 
-  pwd.prototype.terminal = function(callback) {
+  pwd.prototype.terminal = function(term, callback) {
     var self = this;
-    this.createInstance({}, function(err, instance) {
+    this.createInstance({type: term.type}, function(err, instance) {
       if (err && err.max) {
         !callback || callback(new Error("Max instances reached"))
         return
@@ -320,8 +321,7 @@ import 'xterm/dist/xterm.css'
         return
       }
 
-      var instance_number = instance.name[instance.name.length -1 ];
-      self.createTerminal(self.terms[instance_number - 1], instance.name);
+      self.createTerminal(term, instance.name);
 
 
       !callback || callback(undefined, instance);
