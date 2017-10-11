@@ -85,8 +85,9 @@ import 'xterm/dist/xterm.css'
       actions[n].onclick = function(evt) {
         evt.preventDefault();
         var port = this.getAttribute("data-port");
+        var protocol = this.getAttribute('protocol') || 'http';
         if (port) {
-          window.open('//'+ instance.proxy_host + '-' + port + '.direct.' + self.opts.baseUrl.split('/')[2] + this.attributes.href.value, '_blank');
+          window.open(protocol + '://'+ instance.proxy_host + '-' + port + '.direct.' + self.opts.baseUrl.split('/')[2] + this.attributes.href.value, '_blank');
         }
       };
     }
