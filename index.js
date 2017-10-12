@@ -84,24 +84,32 @@ import 'xterm/dist/xterm.css'
     var height = screen.height*0.6;
     var x = screen.width/2 - width/2;
     var y = screen.height/2 - height/2;
-    var loginWnd = $window.open(this.opts.baseUrl + '/oauth/providers/' + this.opts.oauthProvider + '/login', 'PWDLogin', 'width='+width+',height='+height+',left='+x+',top='+y);
-    loginWnd.onunload = function() {
+    window.open(this.opts.baseUrl + '/oauth/providers/' + this.opts.oauthProvider + '/login', 'PWDLogin', 'width='+width+',height='+height+',left='+x+',top='+y);
+    var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+    var eventer = window[eventMethod];
+    var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+    // Listen to message from child window
+    eventer(messageEvent,function(e) {
+      if (e.data === 'done') {
         cb();
-    }
+      }
+    }, false);
   }
 
   pwd.prototype.createSession = function(cb) {
+    var self = this;
     sendRequest('POST', this.opts.baseUrl + '/', {headers:{'Content-type':'application/x-www-form-urlencoded'}}, encodeURIComponent('session-duration') + '=' + encodeURIComponent('90m'), function(resp) {
       //TODO handle errors
       if (resp.status == 200) {
         var sessionData = JSON.parse(resp.responseText);
-        self.opts.baseUrl = 'http://' + sessionData.hostname;
+        // fetch current scheme from opts to use in the new session hostname
+        self.opts.baseUrl = self.opts.baseUrl.split('/')[0] + '//' + sessionData.hostname;
         self.init(sessionData.session_id, self.opts, function() {
           self.terms.forEach(function(term) {
 
             // Create terminals only for those elements that exist at least once in the DOM
             if (document.querySelector(term.selector)) {
-              self.terminal();
+              self.terminal(term);
             }
           });
           cb();
