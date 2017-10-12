@@ -26,38 +26,6 @@ import 'xterm/dist/xterm.css'
     var self = this;
     var data = encodeURIComponent('g-recaptcha-response') + '=' + encodeURIComponent(response);
     data += '&' + encodeURIComponent('session-duration') + '=' + encodeURIComponent('90m');
-    sendRequest('POST', this.opts.baseUrl + '/', {headers:{'Content-type':'application/x-www-form-urlencoded'}}, data, function(resp) {
-      //TODO handle errors
-      if (resp.status == 200) {
-        var sessionData = JSON.parse(resp.responseText);
-        // fetch current scheme from opts to use in the new session hostname
-        self.opts.baseUrl = self.opts.baseUrl.split('/')[0] + '//' + sessionData.hostname;
-        self.init(sessionData.session_id, self.opts, function() {
-          self.terms.forEach(function(term) {
-            // Create terminals only for those elements that exist at least once in the DOM
-            if (document.querySelector(term.selector)) {
-              self.terminal(term, function() {
-                //Remove captchas after initializing terminals;
-                var captcha = document.querySelectorAll(term.selector + ' .captcha');
-                for (var n=0; n < captcha.length; ++n) {
-                  captcha[n].parentNode.removeChild(captcha[n]);
-                }
-              });
-            }
-          });
-        });
-      } else if (resp.status == 403) {
-        // Forbidden, we need to display te captcha
-        var term = window.pwd.terms[0];
-        var els = document.querySelectorAll(term.selector);
-        for (var n=0; n < els.length; ++n) {
-          var captcha = document.createElement('div');
-          captcha.className = 'captcha';
-          els[n].appendChild(captcha);
-          window.grecaptcha.render(captcha, {'sitekey': '6Ld8pREUAAAAAOkrGItiEeczO9Tfi99sIHoMvFA_', 'callback': verifyCallback.bind(window.pwd)});
-        }
-      };
-    });
   };
 
   // register Recaptcha global onload callback
@@ -108,14 +76,59 @@ import 'xterm/dist/xterm.css'
     this.opts.baseUrl = this.opts.baseUrl || 'http://labs.play-with-docker.com';
     this.opts.ports = this.opts.ports || [];
     this.opts.ImageName = this.opts.ImageName || '';
+    this.opts.oauthProvider = this.opts.oauthProvider || 'docker';
+  }
+
+  pwd.prototype.login = function(cb) {
+    var width = screen.width*0.6;
+    var height = screen.height*0.6;
+    var x = screen.width/2 - width/2;
+    var y = screen.height/2 - height/2;
+    var loginWnd = $window.open(this.opts.baseUrl + '/oauth/providers/' + this.opts.oauthProvider + '/login', 'PWDLogin', 'width='+width+',height='+height+',left='+x+',top='+y);
+    loginWnd.onunload = function() {
+        cb();
+    }
+  }
+
+  pwd.prototype.createSession = function(cb) {
+    sendRequest('POST', this.opts.baseUrl + '/', {headers:{'Content-type':'application/x-www-form-urlencoded'}}, encodeURIComponent('session-duration') + '=' + encodeURIComponent('90m'), function(resp) {
+      //TODO handle errors
+      if (resp.status == 200) {
+        var sessionData = JSON.parse(resp.responseText);
+        self.opts.baseUrl = 'http://' + sessionData.hostname;
+        self.init(sessionData.session_id, self.opts, function() {
+          self.terms.forEach(function(term) {
+
+            // Create terminals only for those elements that exist at least once in the DOM
+            if (document.querySelector(term.selector)) {
+              self.terminal();
+            }
+          });
+          cb();
+        });
+      } else if (resp.status == 403) {
+        cb('forbidden');
+      };
+    });
   }
 
   pwd.prototype.newSession = function(terms, opts) {
+    var self = this;
     setOpts.call(this, opts);
     terms = terms || [];
     if (terms.length > 0) {
       this.terms = terms;
-      injectScript('https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit');
+      this.createSession(function(err) {
+          if (err) {
+            self.login(function() {
+                self.createSession(function(err) {
+                    if (err) {
+                        console.warn('Could not login user.');
+                    }
+                });
+            });
+          }
+      });
     } else {
       console.warn('No terms specified, nothing to do.');
     }
