@@ -84,7 +84,10 @@ import 'xterm/dist/xterm.css'
     var height = screen.height*0.6;
     var x = screen.width/2 - width/2;
     var y = screen.height/2 - height/2;
-    window.open(this.opts.baseUrl + '/oauth/providers/' + this.opts.oauthProvider + '/login', 'PWDLogin', 'width='+width+',height='+height+',left='+x+',top='+y);
+    var login = window.open(this.opts.baseUrl + '/oauth/providers/' + this.opts.oauthProvider + '/login', 'PWDLogin', 'width='+width+',height='+height+',left='+x+',top='+y);
+    if (!login) {
+      alert('Please enable your popups for this site for terminal to work');
+    }
     var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
     var eventer = window[eventMethod];
     var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
