@@ -80,23 +80,33 @@ import 'xterm/dist/xterm.css'
   }
 
   pwd.prototype.login = function(cb) {
+    var self = this;
     var width = screen.width*0.6;
     var height = screen.height*0.6;
     var x = screen.width/2 - width/2;
     var y = screen.height/2 - height/2;
-    var login = window.open(this.opts.baseUrl + '/oauth/providers/' + this.opts.oauthProvider + '/login', 'PWDLogin', 'width='+width+',height='+height+',left='+x+',top='+y);
-    if (!login) {
-      alert('Please enable your popups for this site for terminal to work');
-    }
-    var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
-    var eventer = window[eventMethod];
-    var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
-    // Listen to message from child window
-    eventer(messageEvent,function(e) {
-      if (e.data === 'done') {
-        cb();
-      }
-    }, false);
+
+    // display login btn in 1st terminal only
+    var term = window.pwd.terms[0];
+    var els = document.querySelectorAll(term.selector);
+    var loginBtn = document.createElement("input");
+    loginBtn.type = 'button';
+    loginBtn.value = 'Log-in to access';
+    loginBtn.className = 'btn btn-lg btn-primary'
+    loginBtn.onclick = function() {
+      window.open(self.opts.baseUrl + '/oauth/providers/' + self.opts.oauthProvider + '/login', 'PWDLogin', 'width='+width+',height='+height+',left='+x+',top='+y);
+      var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+      var eventer = window[eventMethod];
+      var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+      // Listen to message from child window
+      eventer(messageEvent,function(e) {
+        if (e.data === 'done') {
+          els[0].removeChild(loginBtn);
+          cb();
+        }
+      }, false);
+    };
+    els[0].appendChild(loginBtn);
   }
 
   pwd.prototype.createSession = function(cb) {
