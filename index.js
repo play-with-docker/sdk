@@ -111,7 +111,12 @@ import 'xterm/dist/xterm.css'
 
   pwd.prototype.createSession = function(cb) {
     var self = this;
-    sendRequest('POST', this.opts.baseUrl + '/', {headers:{'Content-type':'application/x-www-form-urlencoded'}}, encodeURIComponent('session-duration') + '=' + encodeURIComponent('90m'), function(resp) {
+    sendRequest({
+      method: 'POST',
+      url: this.opts.baseUrl + '/',
+      opts: {headers:{'Content-type':'application/x-www-form-urlencoded'}},
+      data: encodeURIComponent('session-duration') + '=' + encodeURIComponent('90m')
+    }, function(resp) {
       //TODO handle errors
       if (resp.status == 200) {
         var sessionData = JSON.parse(resp.responseText);
@@ -131,6 +136,23 @@ import 'xterm/dist/xterm.css'
         cb('forbidden');
       };
     });
+  }
+
+  pwd.prototype.closeSession = function(callback) {
+    if (this.sessionId) {
+      sendRequest({
+        method: 'DELETE',
+        url: this.opts.baseUrl + '/sessions/' + this.sessionId,
+        opts: {headers:{'Content-type':'application/json'}},
+        sync: true
+      }, function(response) {
+        if (response.status == 200) {
+          callback();
+        } else {
+          callback(new Error("Error deleting session"));
+        }
+      });
+    }
   }
 
   pwd.prototype.newSession = function(terms, opts) {
@@ -187,7 +209,10 @@ import 'xterm/dist/xterm.css'
       self.resize();
     };
 
-    sendRequest('GET', this.opts.baseUrl + '/sessions/' + sessionId, undefined, undefined, function(response){
+    sendRequest({
+      method: 'GET',
+      url: this.opts.baseUrl + '/sessions/' + sessionId,
+    }, function(response) {
       var session = JSON.parse(response.responseText);
       for (var name in session.instances) {
         var i = session.instances[name];
@@ -219,13 +244,14 @@ import 'xterm/dist/xterm.css'
 
   // I know, opts and data can be ommited. I'm not a JS developer =(
   // Data needs to be sent encoded appropriately
-  function sendRequest(method, url, opts, data, callback) {
+  function sendRequest(req, callback) {
     var request = new XMLHttpRequest();
-    request.open(method, url, true);
+    var asyncReq = !req.sync
+    request.open(req.method, req.url, asyncReq);
 
-    if (opts && opts.headers) {
-      for (var key in opts.headers) {
-        request.setRequestHeader(key, opts.headers[key]);
+    if (req.opts && req.opts.headers) {
+      for (var key in req.opts.headers) {
+        request.setRequestHeader(key, req.opts.headers[key]);
       }
     }
     request.withCredentials = true;
@@ -233,10 +259,10 @@ import 'xterm/dist/xterm.css'
     request.onload = function() {
       callback(request);
     };
-    if (typeof(data) === 'object' && data.constructor.name != 'FormData') {
-      request.send(JSON.stringify(data));
+    if (typeof(req.data) === 'object' && req.data.constructor.name != 'FormData') {
+      request.send(JSON.stringify(req.data));
     } else {
-      request.send(data);
+      request.send(req.data);
     }
   };
 
@@ -244,7 +270,12 @@ import 'xterm/dist/xterm.css'
     var self = this;
     opts.ImageName = opts.ImageName || self.opts.ImageName;
     //TODO handle http connection errors
-    sendRequest('POST', self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances', {headers:{'Content-type':'application/json'}}, opts, function(response) {
+    sendRequest({
+      method: 'POST',
+      url: self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances',
+      opts: {headers:{'Content-type':'application/json'}},
+      data: opts
+    }, function(response) {
       if (response.status == 200) {
         var i = JSON.parse(response.responseText);
         i.terms = [];
@@ -262,8 +293,12 @@ import 'xterm/dist/xterm.css'
 
   pwd.prototype.upload = function(name, data, callback) {
     var self = this;
-
-    sendRequest('POST', self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances/' + name + '/uploads', {}, data, function(response) {
+    sendRequest({
+      method: 'POST',
+      url: self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances/' + name + '/uploads',
+      opts: {},
+      data: data
+    }, function(response) {
       if (response.status == 200) {
         if (callback) {
             callback(undefined);
@@ -279,8 +314,12 @@ import 'xterm/dist/xterm.css'
 
   pwd.prototype.setup = function(data, callback) {
     var self = this;
-
-    sendRequest('POST', self.opts.baseUrl + '/sessions/' + this.sessionId + '/setup', {headers:{'Content-type':'application/json'}}, data, function(response) {
+    sendRequest({
+      method: 'POST',
+      url: self.opts.baseUrl + '/sessions/' + this.sessionId + '/setup',
+      opts: {headers:{'Content-type':'application/json'}},
+      data: data
+    }, function(response) {
       if (response.status == 200) {
         if (callback) {
             callback(undefined);
@@ -295,8 +334,12 @@ import 'xterm/dist/xterm.css'
 
   pwd.prototype.exec = function(name, data, callback) {
     var self = this;
-
-    sendRequest('POST', self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances/' + name + '/exec', {headers:{'Content-type':'application/json'}}, {command: data}, function(response) {
+    sendRequest({
+      method: 'POST',
+      url: self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances/' + name + '/exec',
+      opts: {headers:{'Content-type':'application/json'}},
+      data: {command: data}
+    }, function(response) {
       if (response.status == 200) {
         if (callback) {
             callback(undefined);
