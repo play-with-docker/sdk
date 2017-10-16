@@ -72,7 +72,14 @@ import 'xterm/dist/xterm.css'
     var actions = document.querySelectorAll('code[class*="'+termName+'"]');
     for (var n=0; n < actions.length; ++n) {
       actions[n].onclick = function() {
-        self.socket.emit('terminal in', instance.name, this.innerText);
+
+        // get rid of first line bash prompt
+        var cmds = this.innerText.replace(/^\s*\$\s/, '')
+
+        // get rid of later line bash prompts
+        cmds = cmds.replace(/(\r?\n\s*)\$\s/g, '$1')
+
+        self.socket.emit('terminal in', instance.name, cmds);
       };
     }
   }
