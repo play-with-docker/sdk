@@ -26,38 +26,6 @@ import 'xterm/dist/xterm.css'
     var self = this;
     var data = encodeURIComponent('g-recaptcha-response') + '=' + encodeURIComponent(response);
     data += '&' + encodeURIComponent('session-duration') + '=' + encodeURIComponent('60m');
-    sendRequest('POST', this.opts.baseUrl + '/', {headers:{'Content-type':'application/x-www-form-urlencoded'}}, data, function(resp) {
-      //TODO handle errors
-      if (resp.status == 200) {
-        var sessionData = JSON.parse(resp.responseText);
-        self.opts.baseUrl = 'http://' + sessionData.hostname;
-        self.init(sessionData.session_id, self.opts, function() {
-          self.terms.forEach(function(term) {
-
-            // Create terminals only for those elements that exist at least once in the DOM
-            if (document.querySelector(term.selector)) {
-              self.terminal(function() {
-                //Remove captchas after initializing terminals;
-                var captcha = document.querySelectorAll(term.selector + ' .captcha');
-                for (var n=0; n < captcha.length; ++n) {
-                  captcha[n].parentNode.removeChild(captcha[n]);
-                }
-              });
-            }
-          });
-        });
-      } else if (resp.status == 403) {
-        // Forbidden, we need to display te captcha
-        var term = window.pwd.terms[0];
-        var els = document.querySelectorAll(term.selector);
-        for (var n=0; n < els.length; ++n) {
-          var captcha = document.createElement('div');
-          captcha.className = 'captcha';
-          els[n].appendChild(captcha);
-          window.grecaptcha.render(captcha, {'sitekey': '6Ld8pREUAAAAAOkrGItiEeczO9Tfi99sIHoMvFA_', 'callback': verifyCallback.bind(window.pwd)});
-        }
-      };
-    });
   };
 
   // register Recaptcha global onload callback
@@ -72,7 +40,7 @@ import 'xterm/dist/xterm.css'
     var actions = document.querySelectorAll('code[class*="'+termName+'"]');
     for (var n=0; n < actions.length; ++n) {
       actions[n].onclick = function() {
-        self.socket.emit('terminal in', instance.name, this.innerText);
+        self.socket.emit('instance terminal in', instance.name, this.innerText);
       };
     }
   }
@@ -85,8 +53,9 @@ import 'xterm/dist/xterm.css'
       actions[n].onclick = function(evt) {
         evt.preventDefault();
         var port = this.getAttribute("data-port");
+        var protocol = this.getAttribute('protocol') || 'http';
         if (port) {
-          window.open('//pwd'+ instance.ip.replace(/\./g, "-") + '-' + port + '.' + self.opts.baseUrl.split('/')[2] + this.attributes.href.value, '_blank');
+          window.open(protocol + '://'+ instance.proxy_host + '-' + port + '.direct.' + self.opts.baseUrl.split('/')[2] + this.attributes.href.value, '_blank');
         }
       };
     }
@@ -107,14 +76,102 @@ import 'xterm/dist/xterm.css'
     this.opts.baseUrl = this.opts.baseUrl || 'http://labs.play-with-docker.com';
     this.opts.ports = this.opts.ports || [];
     this.opts.ImageName = this.opts.ImageName || '';
+    this.opts.oauthProvider = this.opts.oauthProvider || 'docker';
+  }
+
+  pwd.prototype.login = function(cb) {
+    var self = this;
+    var width = screen.width*0.6;
+    var height = screen.height*0.6;
+    var x = screen.width/2 - width/2;
+    var y = screen.height/2 - height/2;
+
+    // display login btn in 1st terminal only
+    var term = window.pwd.terms[0];
+    var els = document.querySelectorAll(term.selector);
+    var loginBtn = document.createElement("input");
+    loginBtn.type = 'button';
+    loginBtn.value = 'Log-in to access';
+    loginBtn.className = 'btn btn-lg btn-primary'
+    loginBtn.onclick = function() {
+      window.open(self.opts.baseUrl + '/oauth/providers/' + self.opts.oauthProvider + '/login', 'PWDLogin', 'width='+width+',height='+height+',left='+x+',top='+y);
+      var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+      var eventer = window[eventMethod];
+      var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+      // Listen to message from child window
+      eventer(messageEvent,function(e) {
+        if (e.data === 'done') {
+          els[0].removeChild(loginBtn);
+          cb();
+        }
+      }, false);
+    };
+    els[0].appendChild(loginBtn);
+  }
+
+  pwd.prototype.createSession = function(cb) {
+    var self = this;
+    sendRequest({
+      method: 'POST',
+      url: this.opts.baseUrl + '/',
+      opts: {headers:{'Content-type':'application/x-www-form-urlencoded'}},
+      data: encodeURIComponent('session-duration') + '=' + encodeURIComponent('90m')
+    }, function(resp) {
+      //TODO handle errors
+      if (resp.status == 200) {
+        var sessionData = JSON.parse(resp.responseText);
+        // fetch current scheme from opts to use in the new session hostname
+        self.opts.baseUrl = self.opts.baseUrl.split('/')[0] + '//' + sessionData.hostname;
+        self.init(sessionData.session_id, self.opts, function() {
+          self.terms.forEach(function(term) {
+
+            // Create terminals only for those elements that exist at least once in the DOM
+            if (document.querySelector(term.selector)) {
+              self.terminal(term);
+            }
+          });
+          cb();
+        });
+      } else if (resp.status == 403) {
+        cb('forbidden');
+      };
+    });
+  }
+
+  pwd.prototype.closeSession = function(callback) {
+    if (this.sessionId) {
+      sendRequest({
+        method: 'DELETE',
+        url: this.opts.baseUrl + '/sessions/' + this.sessionId,
+        opts: {headers:{'Content-type':'application/json'}},
+        sync: true
+      }, function(response) {
+        if (response.status == 200) {
+          callback();
+        } else {
+          callback(new Error("Error deleting session"));
+        }
+      });
+    }
   }
 
   pwd.prototype.newSession = function(terms, opts) {
+    var self = this;
     setOpts.call(this, opts);
     terms = terms || [];
     if (terms.length > 0) {
       this.terms = terms;
-      injectScript('https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit');
+      this.createSession(function(err) {
+          if (err) {
+            self.login(function() {
+                self.createSession(function(err) {
+                    if (err) {
+                        console.warn('Could not login user.');
+                    }
+                });
+            });
+          }
+      });
     } else {
       console.warn('No terms specified, nothing to do.');
     }
@@ -126,7 +183,7 @@ import 'xterm/dist/xterm.css'
     setOpts.call(this, opts);
     this.sessionId = sessionId;
     this.socket = io(this.opts.baseUrl, {path: '/sessions/' + sessionId + '/ws' });
-    this.socket.on('terminal out', function(name ,data) {
+    this.socket.on('instance terminal out', function(name ,data) {
       var instance = self.instances[name];
       if (instance && instance.terms) {
         instance.terms.forEach(function(term) {term.write(data)});
@@ -138,7 +195,7 @@ import 'xterm/dist/xterm.css'
     });
 
     // Resize all terminals
-    this.socket.on('viewport resize', function(cols, rows) {
+    this.socket.on('instance viewport resize', function(cols, rows) {
       // Resize all terminals
       for (var name in self.instances) {
         self.instances[name].terms.forEach(function(term){
@@ -152,7 +209,10 @@ import 'xterm/dist/xterm.css'
       self.resize();
     };
 
-    sendRequest('GET', this.opts.baseUrl + '/sessions/' + sessionId, undefined, undefined, function(response){
+    sendRequest({
+      method: 'GET',
+      url: this.opts.baseUrl + '/sessions/' + sessionId,
+    }, function(response) {
       var session = JSON.parse(response.responseText);
       for (var name in session.instances) {
         var i = session.instances[name];
@@ -168,11 +228,14 @@ import 'xterm/dist/xterm.css'
   pwd.prototype.resize = function() {
     var name = Object.keys(this.instances)[0]
     for (var n in this.instances) {
-      for (var i = 0; i < this.instances[n].terms.length; i ++) {
-        var term = this.instances[n].terms[i];
-        var size = term.proposeGeometry();
-        if (size.cols && size.rows) {
-          return this.socket.emit('viewport resize', size.cols, size.rows);
+      // there might be some instances without terminals
+      if (this.instances[n].terms) {
+        for (var i = 0; i < this.instances[n].terms.length; i ++) {
+          var term = this.instances[n].terms[i];
+          var size = term.proposeGeometry();
+          if (size.cols && size.rows) {
+            return this.socket.emit('instance viewport resize', size.cols, size.rows);
+          }
         }
       }
     }
@@ -181,13 +244,14 @@ import 'xterm/dist/xterm.css'
 
   // I know, opts and data can be ommited. I'm not a JS developer =(
   // Data needs to be sent encoded appropriately
-  function sendRequest(method, url, opts, data, callback) {
+  function sendRequest(req, callback) {
     var request = new XMLHttpRequest();
-    request.open(method, url, true);
+    var asyncReq = !req.sync
+    request.open(req.method, req.url, asyncReq);
 
-    if (opts && opts.headers) {
-      for (var key in opts.headers) {
-        request.setRequestHeader(key, opts.headers[key]);
+    if (req.opts && req.opts.headers) {
+      for (var key in req.opts.headers) {
+        request.setRequestHeader(key, req.opts.headers[key]);
       }
     }
     request.withCredentials = true;
@@ -195,17 +259,23 @@ import 'xterm/dist/xterm.css'
     request.onload = function() {
       callback(request);
     };
-    if (typeof(data) === 'object' && data.constructor.name != 'FormData') {
-      request.send(JSON.stringify(data));
+    if (typeof(req.data) === 'object' && req.data.constructor.name != 'FormData') {
+      request.send(JSON.stringify(req.data));
     } else {
-      request.send(data);
+      request.send(req.data);
     }
   };
 
-  pwd.prototype.createInstance = function(callback) {
+  pwd.prototype.createInstance = function(opts, callback) {
     var self = this;
+    opts.ImageName = opts.ImageName || self.opts.ImageName;
     //TODO handle http connection errors
-    sendRequest('POST', self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances', {headers:{'Content-type':'application/json'}}, {ImageName: self.opts.ImageName}, function(response) {
+    sendRequest({
+      method: 'POST',
+      url: self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances',
+      opts: {headers:{'Content-type':'application/json'}},
+      data: opts
+    }, function(response) {
       if (response.status == 200) {
         var i = JSON.parse(response.responseText);
         i.terms = [];
@@ -223,8 +293,33 @@ import 'xterm/dist/xterm.css'
 
   pwd.prototype.upload = function(name, data, callback) {
     var self = this;
+    sendRequest({
+      method: 'POST',
+      url: self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances/' + name + '/uploads',
+      opts: {},
+      data: data
+    }, function(response) {
+      if (response.status == 200) {
+        if (callback) {
+            callback(undefined);
+        }
+      } else {
+        if (callback) {
+            callback(new Error());
+        }
+      }
+    });
+  }
 
-    sendRequest('POST', self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances/' + name + '/uploads', {}, data, function(response) {
+
+  pwd.prototype.setup = function(data, callback) {
+    var self = this;
+    sendRequest({
+      method: 'POST',
+      url: self.opts.baseUrl + '/sessions/' + this.sessionId + '/setup',
+      opts: {headers:{'Content-type':'application/json'}},
+      data: data
+    }, function(response) {
       if (response.status == 200) {
         if (callback) {
             callback(undefined);
@@ -239,8 +334,12 @@ import 'xterm/dist/xterm.css'
 
   pwd.prototype.exec = function(name, data, callback) {
     var self = this;
-
-    sendRequest('POST', self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances/' + name + '/exec', {headers:{'Content-type':'application/json'}}, {command: data}, function(response) {
+    sendRequest({
+      method: 'POST',
+      url: self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances/' + name + '/exec',
+      opts: {headers:{'Content-type':'application/json'}},
+      data: {command: data}
+    }, function(response) {
       if (response.status == 200) {
         if (callback) {
             callback(undefined);
@@ -263,20 +362,20 @@ import 'xterm/dist/xterm.css'
       var t = new Terminal({cursorBlink: false});
       t.open(elements[n], {focus: true});
       t.on('data', function(d) {
-        self.socket.emit('terminal in', i.name, d);
+        self.socket.emit('instance terminal in', i.name, d);
       });
-      var size = t.proposeGeometry();
-      self.socket.emit('viewport resize', size.cols, size.rows);
+
+      if (!i.terms) {
+        i.terms = [];
+      }
       i.terms.push(t);
-      console.log(i, i.terms);
+      self.resize();
     }
 
 
     registerPortHandlers.call(self, term.name, i)
 
     registerInputHandlers.call(self, term.name, i);
-
-
 
     if (self.instanceBuffer[name]) {
       //Flush buffer and clear it
@@ -289,9 +388,9 @@ import 'xterm/dist/xterm.css'
     return i.terms;
   }
 
-  pwd.prototype.terminal = function(callback) {
+  pwd.prototype.terminal = function(term, callback) {
     var self = this;
-    this.createInstance(function(err, instance) {
+    this.createInstance({type: term.type}, function(err, instance) {
       if (err && err.max) {
         !callback || callback(new Error("Max instances reached"))
         return
@@ -300,8 +399,7 @@ import 'xterm/dist/xterm.css'
         return
       }
 
-      var instance_number = instance.name[instance.name.length -1 ];
-      self.createTerminal(self.terms[instance_number - 1], instance.name);
+      self.createTerminal(term, instance.name);
 
 
       !callback || callback(undefined, instance);
