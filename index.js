@@ -1,6 +1,6 @@
 import Terminal from 'xterm'
 import fit from 'xterm/lib/addons/fit/fit.js'
-import * as io from 'socket.io-client'
+import ReconnectingWebSocket from 'reconnecting-websocket'
 import 'xterm/dist/xterm.css'
 
 (function (window) {
@@ -73,7 +73,7 @@ import 'xterm/dist/xterm.css'
   function setOpts(opts) {
     var opts = opts || {};
     this.opts = opts;
-    this.opts.baseUrl = this.opts.baseUrl || 'http://labs.play-with-docker.com';
+    this.opts.baseUrl = this.opts.baseUrl || 'wss://labs.play-with-docker.com';
     this.opts.ports = this.opts.ports || [];
     this.opts.ImageName = this.opts.ImageName || '';
     this.opts.oauthProvider = this.opts.oauthProvider || 'docker';
@@ -182,7 +182,37 @@ import 'xterm/dist/xterm.css'
     var self = this;
     setOpts.call(this, opts);
     this.sessionId = sessionId;
-    this.socket = io(this.opts.baseUrl, {path: '/sessions/' + sessionId + '/ws' });
+    var l = document.createElement("a");
+    l.href = this.opts.baseUrl;
+		this.socket = new ReconnectingWebSocket((l.protocol === 'http:' ? 'ws://' : 'wss://') + l.hostname + '/sessions/' + sessionId + '/ws/' );
+		this.socket.listeners = {};
+
+		this.socket.on = function(name, cb) {
+			if (!self.socket.listeners[name]) {
+				self.socket.listeners[name] = [];
+			}
+			self.socket.listeners[name].push(cb);
+		}
+	  this.socket.emit = function() {
+			var name = arguments[0]
+			var args = [];
+			for (var i = 1; i < arguments.length; i++) {
+				args.push(arguments[i]);
+			}
+			self.socket.send(JSON.stringify({name: name, args: args}));
+		}
+
+		this.socket.addEventListener('message', function (event) {
+			var m = JSON.parse(event.data);
+			var ls = self.socket.listeners[m.name];
+			if (ls) {
+				for (var i=0; i<ls.length; i++) {
+					var l = ls[i];
+					l.apply(l, m.args);
+				}
+			}
+		});
+
     this.socket.on('instance terminal out', function(name ,data) {
       var instance = self.instances[name];
       if (instance && instance.terms) {
