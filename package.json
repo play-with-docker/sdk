@@ -23,7 +23,7 @@
     "webpack": "^2.6.0"
   },
   "dependencies": {
-    "socket.io-client": "^2.0.1",
+    "reconnecting-websocket": "^3.2.2",
     "xterm": "^2.9.2"
   }
 }
