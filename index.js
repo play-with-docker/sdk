@@ -184,7 +184,7 @@ import 'xterm/dist/xterm.css'
     this.sessionId = sessionId;
     var l = document.createElement("a");
     l.href = this.opts.baseUrl;
-		this.socket = new ReconnectingWebSocket((l.protocol === 'http:' ? 'ws://' : 'wss://') + l.hostname + '/sessions/' + sessionId + '/ws/' );
+		this.socket = new ReconnectingWebSocket((l.protocol === 'http:' ? 'ws://' : 'wss://') + l.host + '/sessions/' + sessionId + '/ws/' );
 		this.socket.listeners = {};
 
 		this.socket.on = function(name, cb) {
