@@ -420,7 +420,8 @@ import 'xterm/dist/xterm.css'
 
   pwd.prototype.terminal = function(term, callback) {
     var self = this;
-    this.createInstance({type: term.type}, function(err, instance) {
+    var hostname = "node" + (this.terms.indexOf(term) + 1);
+    this.createInstance({type: term.type, Hostname: hostname}, function(err, instance) {
       if (err && err.max) {
         !callback || callback(new Error("Max instances reached"))
         return
