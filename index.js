@@ -73,7 +73,7 @@ import 'xterm/dist/xterm.css'
   function setOpts(opts) {
     var opts = opts || {};
     this.opts = opts;
-    this.opts.baseUrl = this.opts.baseUrl || 'wss://labs.play-with-docker.com';
+    this.opts.baseUrl = this.opts.baseUrl || 'https://labs.play-with-docker.com';
     this.opts.ports = this.opts.ports || [];
     this.opts.ImageName = this.opts.ImageName || '';
     this.opts.oauthProvider = this.opts.oauthProvider || 'docker';
