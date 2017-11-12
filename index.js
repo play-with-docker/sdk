@@ -40,7 +40,14 @@ import 'xterm/dist/xterm.css'
     var actions = document.querySelectorAll('code[class*="'+termName+'"]');
     for (var n=0; n < actions.length; ++n) {
       actions[n].onclick = function() {
-        self.socket.emit('instance terminal in', instance.name, this.innerText);
+        var lines = this.innerText.split("\n");
+        for (var i = 0; i < lines.length; i ++) {
+          var line = lines[i];
+          // if line starts with
+          if (line.startsWith("$")) {
+            self.socket.emit('instance terminal in', instance.name, line.replace('$','')+'\n');
+          }
+        }
       };
     }
   }
@@ -133,7 +140,10 @@ import 'xterm/dist/xterm.css'
           cb();
         });
       } else if (resp.status == 403) {
-        cb('forbidden');
+        //TODO login should return error and handle it
+        self.login(function() {
+          self.createSession(cb)
+        });
       };
     });
   }
@@ -155,7 +165,22 @@ import 'xterm/dist/xterm.css'
     }
   }
 
-  pwd.prototype.newSession = function(terms, opts) {
+  pwd.prototype.getUserInfo = function(callback) {
+    sendRequest({
+      method: 'GET',
+      url: this.opts.baseUrl + '/users/me',
+      opts: {headers:{'Content-type':'application/json'}}
+    }, function(response) {
+      if (response.status == 200) {
+        var u = JSON.parse(response.responseText);
+        callback(u);
+      } else {
+        callback(undefined);
+      }
+    });
+  }
+
+  pwd.prototype.newSession = function(terms, opts, callback) {
     var self = this;
     setOpts.call(this, opts);
     terms = terms || [];
@@ -163,14 +188,9 @@ import 'xterm/dist/xterm.css'
       this.terms = terms;
       this.createSession(function(err) {
           if (err) {
-            self.login(function() {
-                self.createSession(function(err) {
-                    if (err) {
-                        console.warn('Could not login user.');
-                    }
-                });
-            });
+            console.warn('Could not create session');
           }
+      !callback || callback();
       });
     } else {
       console.warn('No terms specified, nothing to do.');
@@ -403,9 +423,9 @@ import 'xterm/dist/xterm.css'
     }
 
 
-    registerPortHandlers.call(self, term.name, i)
+    registerPortHandlers.call(self, term.selector, i)
 
-    registerInputHandlers.call(self, term.name, i);
+    registerInputHandlers.call(self, term.selector, i);
 
     if (self.instanceBuffer[name]) {
       //Flush buffer and clear it
