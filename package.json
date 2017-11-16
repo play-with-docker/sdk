@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "reconnecting-websocket": "^3.2.2",
+    "wolfy87-eventemitter": "^5.2.4",
     "xterm": "^2.9.2"
   }
 }

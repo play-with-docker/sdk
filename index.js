@@ -2,6 +2,7 @@ import Terminal from 'xterm'
 import fit from 'xterm/lib/addons/fit/fit.js'
 import ReconnectingWebSocket from 'reconnecting-websocket'
 import 'xterm/dist/xterm.css'
+import EventEmitter from 'wolfy87-eventemitter'
 
 (function (window) {
 
@@ -77,6 +78,10 @@ import 'xterm/dist/xterm.css'
   };
 
 
+  pwd.prototype = Object.create(EventEmitter.prototype)
+  pwd.prototype.constructor = pwd;
+
+
   function setOpts(opts) {
     var opts = opts || {};
     this.opts = opts;
@@ -126,6 +131,7 @@ import 'xterm/dist/xterm.css'
     }, function(resp) {
       //TODO handle errors
       if (resp.status == 200) {
+        self.emitEvent('init')
         var sessionData = JSON.parse(resp.responseText);
         // fetch current scheme from opts to use in the new session hostname
         self.opts.baseUrl = self.opts.baseUrl.split('/')[0] + '//' + sessionData.hostname;
@@ -190,7 +196,7 @@ import 'xterm/dist/xterm.css'
           if (err) {
             console.warn('Could not create session');
           }
-      !callback || callback();
+          !callback || callback();
       });
     } else {
       console.warn('No terms specified, nothing to do.');
