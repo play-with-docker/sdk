@@ -41,7 +41,9 @@ import EventEmitter from 'wolfy87-eventemitter'
     var actions = document.querySelectorAll('code[class*="'+termName+'"]');
     for (var n=0; n < actions.length; ++n) {
       actions[n].onclick = function() {
-        var lines = this.innerText.split("\n");
+	self.socket.emit('instance terminal in', instance.name, this.innerText);
+        /* Prompt support
+	var lines = this.innerText.split("\n");
         for (var i = 0; i < lines.length; i ++) {
           var line = lines[i];
           // if line starts with
@@ -49,6 +51,7 @@ import EventEmitter from 'wolfy87-eventemitter'
             self.socket.emit('instance terminal in', instance.name, line.replace('$','')+'\n');
           }
         }
+	*/
       };
     }
   }
