@@ -189,6 +189,80 @@ import EventEmitter from 'wolfy87-eventemitter'
     });
   }
 
+  pwd.prototype.getHostname = function(term) {
+    return "node" + (this.terms.indexOf(term) + 1);
+  }
+
+  pwd.prototype.findInstance = function(term) {
+    var self = this;
+    for (var name in self.instances) {
+      if (self.instances[name].hostname == self.getHostname(term)) {
+        return self.instances[name];
+      }
+    }
+    return null;
+  }
+
+  pwd.prototype.openTerminals = function(cb) {
+    var self = this;
+    self.terms.forEach(function(term) {
+      if (document.querySelector(term.selector)) {
+        var i = self.findInstance(term);
+        if (i) {
+          self.createTerminal(term, i.name);
+        } else {
+          self.terminal(term);
+        }
+      }
+    });
+    !cb || cb();
+  }
+
+  pwd.prototype.openSession = function(sessionId, cb) {
+    var self = this;
+    sendRequest({
+      method: 'GET',
+      url: this.opts.baseUrl + '/sessions/' + sessionId,
+    }, function(response){
+      if (response.status == 200) {
+        self.emitEvent('init');
+        var sessionData = JSON.parse(response.responseText);
+        // Fetch current scheme from opts to use in the new session hostname
+        // Once session is open it returns "host" object instead of hostname
+        self.opts.baseUrl = self.opts.baseUrl.split('/')[0] + '//' + sessionData.host;
+        self.init(sessionId, self.opts, function() {
+
+          // Check that socket is open and wait if it is not
+          if (self.socket.readyState) {
+            self.openTerminals(cb);
+          } else {
+            self.socket.addEventListener('open', function(){
+              self.openTerminals(cb);
+            });
+          }
+        });
+      } else if (response.status == 403) {
+        //TODO login should return error and handle it
+        self.login(function() {
+          self.openSession(cb);
+        });
+      } else {
+        cb(new Error());
+      }
+    });
+  }
+
+  pwd.prototype.resumeSession = function(terms, opts, sessionId, cb) {
+    setOpts.call(this, opts);
+    terms = terms || [];
+    if (terms.length > 0) {
+      this.terms = terms;
+      this.openSession(sessionId, cb);
+    } else {
+      console.warn('No terms specified, nothing to do.');
+    }
+  };
+
   pwd.prototype.newSession = function(terms, opts, callback) {
     var self = this;
     setOpts.call(this, opts);
@@ -449,7 +523,7 @@ import EventEmitter from 'wolfy87-eventemitter'
 
   pwd.prototype.terminal = function(term, callback) {
     var self = this;
-    var hostname = "node" + (this.terms.indexOf(term) + 1);
+    var hostname = self.getHostname(term);
     this.createInstance({type: term.type, Hostname: hostname}, function(err, instance) {
       if (err && err.max) {
         !callback || callback(new Error("Max instances reached"))
