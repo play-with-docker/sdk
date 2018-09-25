@@ -61,19 +61,21 @@ import EventEmitter from 'wolfy87-eventemitter'
     // Attach block actions
     var actions = document.querySelectorAll('[data-term*="'+termName+'"]');
     for (var n=0; n < actions.length; ++n) {
+      var port = actions[n].getAttribute("data-port");
+      var protocol = actions[n].getAttribute('protocol') || 'http';
+      var link;
+      if (port) {
+        link = protocol + '://'+ instance.proxy_host + '-' + port + '.direct.' + self.opts.baseUrl.split('/')[2] + this.attributes.href.value;
+      }
       actions[n].onclick = function(evt) {
         evt.preventDefault();
-        var port = this.getAttribute("data-port");
-        var protocol = this.getAttribute('protocol') || 'http';
-        if (port) {
-          window.open(protocol + '://'+ instance.proxy_host + '-' + port + '.direct.' + self.opts.baseUrl.split('/')[2] + this.attributes.href.value, '_blank');
+        if (link) {
+          window.open(link, '_blank');
         }
       };
       actions[n].oncontextmenu = function(evt) {
-        var port = this.getAttribute("data-port");
-        var protocol = this.getAttribute('protocol') || 'http';
-        if (port) {
-          evt.tagrget.herf = protocol + '://'+ instance.proxy_host + '-' + port + '.direct.' + self.opts.baseUrl.split('/')[2] + this.attributes.href.value;
+        if (link) {
+          this.setAttribute("href", link);
         }
       };
     }
