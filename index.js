@@ -69,6 +69,13 @@ import EventEmitter from 'wolfy87-eventemitter'
           window.open(protocol + '://'+ instance.proxy_host + '-' + port + '.direct.' + self.opts.baseUrl.split('/')[2] + this.attributes.href.value, '_blank');
         }
       };
+      actions[n].oncontextmenu = function(evt) {
+        var port = this.getAttribute("data-port");
+        var protocol = this.getAttribute('protocol') || 'http';
+        if (port) {
+          evt.tagrget.herf = protocol + '://'+ instance.proxy_host + '-' + port + '.direct.' + self.opts.baseUrl.split('/')[2] + this.attributes.href.value;
+        }
+      };
     }
   }
 
