@@ -62,10 +62,10 @@ import EventEmitter from 'wolfy87-eventemitter'
     var actions = document.querySelectorAll('[data-term*="'+termName+'"]');
     for (var n=0; n < actions.length; ++n) {
       var port = actions[n].getAttribute("data-port");
-      var protocol = actions[n].getAttribute('protocol') || 'http';
+      var protocol = actions[n].protocol || 'http:';
       var link;
       if (port) {
-        link = protocol + '://'+ instance.proxy_host + '-' + port + '.direct.' + self.opts.baseUrl.split('/')[2] + this.attributes.href.value;
+        link = protocol + '//'+ instance.proxy_host + '-' + port + '.direct.' + self.opts.baseUrl.split('/')[2] + this.attributes.href.value;
       }
       actions[n].onclick = function(evt) {
         evt.preventDefault();
