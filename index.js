@@ -68,12 +68,14 @@ import EventEmitter from 'wolfy87-eventemitter'
       if (port) {
         link = protocol + '//'+ instance.proxy_host + '-' + port + '.direct.' + self.opts.baseUrl.split('/')[2] + anchor.attributes.href.value;
       }
-      anchor.onclick = function(evt) {
+      var openFn = function(evt) {
         evt.preventDefault();
         if (link) {
           window.open(link, '_blank');
         }
       };
+      anchor.onclick = openFn;
+      anchor.onauxclick = openFn;
       anchor.oncontextmenu = function(evt) {
         if (link) {
           this.setAttribute("href", link);
