@@ -63,7 +63,7 @@ import EventEmitter from 'wolfy87-eventemitter'
     for (var n=0; n < actions.length; ++n) {
       var anchor = actions[n];
       var port = anchor.getAttribute("data-port");
-      var protocol = anchor.protocol || 'http:';
+      var protocol = anchor.getAttribute("data-protocol") || 'http:';
       var link;
       if (port) {
         link = protocol + '//'+ instance.proxy_host + '-' + port + '.direct.' + self.opts.baseUrl.split('/')[2] + anchor.attributes.href.value;
