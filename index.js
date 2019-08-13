@@ -1,8 +1,11 @@
-import Terminal from 'xterm'
-import fit from 'xterm/lib/addons/fit/fit.js'
+import {Terminal} from 'xterm'
+import * as fit from 'xterm/lib/addons/fit/fit';
+
 import ReconnectingWebSocket from 'reconnecting-websocket'
 import 'xterm/dist/xterm.css'
 import EventEmitter from 'wolfy87-eventemitter'
+
+Terminal.applyAddon(fit);  // Apply the `fit` addon
 
 (function (window) {
 
