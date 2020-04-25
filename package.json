@@ -1,11 +1,29 @@
 {
   "name": "sdk",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "PWD sdk",
-  "main": "sdk.js",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "umd": "dist/pwd.js",
   "scripts": {
-    "build": "webpack -p"
+    "build": "rollup -c",
+    "watch": "rollup -cw",
+    "test": "ava",
+    "test:watch": "ava --watch --verbose",
+    "new-patch": "npm version patch && git push"
   },
+  "ava": {
+    "files": [
+      "src/**/test.ts"
+    ],
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  },
+  "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/play-with-docker/sdk.git"
@@ -17,14 +35,21 @@
     "url": "https://github.com/play-with-docker/sdk/issues"
   },
   "homepage": "https://github.com/play-with-docker/sdk#readme",
-  "devDependencies": {
-    "css-loader": "^0.28.2",
-    "style-loader": "^0.18.0",
-    "webpack": "^2.6.0"
-  },
   "dependencies": {
     "reconnecting-websocket": "^3.2.2",
     "wolfy87-eventemitter": "^5.2.4",
     "xterm": "^2.9.2"
+  },
+  "devDependencies": {
+    "@ava/typescript": "^1.1.1",
+    "@rollup/plugin-commonjs": "^11.1.0",
+    "@rollup/plugin-node-resolve": "^7.1.3",
+    "@rollup/plugin-typescript": "^4.1.1",
+    "ava": "^3.7.1",
+    "rollup": "^2.7.2",
+    "rollup-plugin-css-only": "^2.0.0",
+    "ts-node": "^8.9.0",
+    "tslib": "^1.11.1",
+    "typescript": "^3.8.3"
   }
 }
