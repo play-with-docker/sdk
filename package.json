@@ -1,6 +1,6 @@
 {
   "name": "test-pwd-sdk",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "PWD sdk",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -29,6 +29,9 @@
     "type": "git",
     "url": "git+https://github.com/play-with-docker/sdk.git"
   },
+  "files": [
+    "dist"
+  ],
   "keywords": [],
   "author": "",
   "license": "ISC",
