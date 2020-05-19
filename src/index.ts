@@ -4,12 +4,13 @@ import ReconnectingWebSocket from "reconnecting-websocket";
 import "xterm/css/xterm.css";
 import EventEmitter from "wolfy87-eventemitter";
 import {
-  injectScript,
   verifyCallback,
   registerInputHandlers,
   registerPortHandlers,
   sendRequest,
 } from "./utils";
+
+import ReactComponent  from "./react";
 
 const Terminal = xterm.Terminal;
 
@@ -249,23 +250,6 @@ class PWD extends EventEmitter {
   }
   resize() {
     this.fitAddon.fit();
-    // var name = Object.keys(this.instances)[0];
-    // for (var n in this.instances) {
-    //   // there might be some instances without terminals
-    //   if (this.instances[n].terms) {
-    //     for (var i = 0; i < this.instances[n].terms.length; i++) {
-    //       var term = this.instances[n].terms[i];
-    //       var size = term.proposeGeometry();
-    //       if (size.cols && size.rows) {
-    //         return this.socket.emit(
-    //           "instance viewport resize",
-    //           size.cols,
-    //           size.rows
-    //         );
-    //       }
-    //     }
-    //   }
-    // }
   }
   createInstance = function (opts, callback) {
     var self = this;
@@ -377,7 +361,7 @@ class PWD extends EventEmitter {
     var i = this.instances[name];
     term.name = term.name || term.selector;
 
-    var elements = document.querySelectorAll(term.selector);
+    const elements = document.querySelectorAll(term.selector);
     for (var n = 0; n < elements.length; ++n) {
       var t: any = new Terminal({ cursorBlink: false });
       this.fitAddon = new FitAddon();
@@ -433,6 +417,8 @@ class PWD extends EventEmitter {
 
 export default PWD;
 
+
+export const ReactPWD = ReactComponent;
 // register Recaptcha global onload callback
 window.addEventListener("load", () => {
   verifyCallback.call((window as any).pwd);

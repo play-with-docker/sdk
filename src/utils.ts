@@ -1,16 +1,3 @@
-export function injectScript(src, cb) {
-  var sj = document.createElement("script");
-  sj.type = "text/javascript";
-  sj.async = true;
-  sj.src = src;
-  sj.addEventListener("load", cb, false);
-  //   sj.addEventListener
-  //     ? sj.addEventListener("load", cb, false)
-  //     : sj.attachEvent("onload", cb);
-  var s = document.getElementsByTagName("script")[0];
-  s.parentNode.insertBefore(sj, s);
-}
-
 // Process recaptcha input and inits SDK
 export function verifyCallback(response) {
   var self = this;

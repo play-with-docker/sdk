@@ -1,8 +1,10 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    (global = global || self, global.PWD = factory());
-}(this, (function () { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('react')) :
+    typeof define === 'function' && define.amd ? define(['exports', 'react'], factory) :
+    (global = global || self, factory(global.PWD = {}, global.React));
+}(this, (function (exports, React) { 'use strict';
+
+    var React__default = 'default' in React ? React['default'] : React;
 
     /*! *****************************************************************************
     Copyright (c) Microsoft Corporation. All rights reserved.
@@ -32,6 +34,17 @@
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     }
+
+    var __assign = function() {
+        __assign = Object.assign || function __assign(t) {
+            for (var s, i = 1, n = arguments.length; i < n; i++) {
+                s = arguments[i];
+                for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+            }
+            return t;
+        };
+        return __assign.apply(this, arguments);
+    };
 
     var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -820,6 +833,36 @@
         }
     }
 
+    var listeners = [];
+    var useInited = function () {
+        var _a = React.useState(false), isInited = _a[0], setInited = _a[1];
+        listeners.push(setInited);
+        var setter = function (val) {
+            listeners.forEach(function (l) { return l(val); });
+        };
+        return [isInited, setter];
+    };
+    var ReactPWD = function (props) {
+        var pwd = props.pwd, name = props.name;
+        var _a = React.useState(false), hasStarted = _a[0], setHasStarted = _a[1];
+        var elID = "pwd-term" + name;
+        var _b = useInited(), isInited = _b[0], setInited = _b[1];
+        React.useEffect(function () {
+            if (!hasStarted && pwd && isInited === 2) {
+                pwd.terminal({ selector: "#pwd-term2" });
+                setHasStarted(true);
+            }
+            if (!hasStarted && pwd && isInited === false) {
+                setInited(1);
+                pwd.newSession([{ selector: "#" + elID }], null, function () {
+                    setInited(2);
+                });
+                setHasStarted(true);
+            }
+        }, [isInited, pwd]);
+        return React__default.createElement("div", __assign({ id: elID }, props));
+    };
+
     var Terminal = xterm$1.Terminal;
     var PWD = /** @class */ (function (_super) {
         __extends(PWD, _super);
@@ -1066,23 +1109,6 @@
         };
         PWD.prototype.resize = function () {
             this.fitAddon.fit();
-            // var name = Object.keys(this.instances)[0];
-            // for (var n in this.instances) {
-            //   // there might be some instances without terminals
-            //   if (this.instances[n].terms) {
-            //     for (var i = 0; i < this.instances[n].terms.length; i++) {
-            //       var term = this.instances[n].terms[i];
-            //       var size = term.proposeGeometry();
-            //       if (size.cols && size.rows) {
-            //         return this.socket.emit(
-            //           "instance viewport resize",
-            //           size.cols,
-            //           size.rows
-            //         );
-            //       }
-            //     }
-            //   }
-            // }
         };
         PWD.prototype.upload = function (name, data, callback) {
             var self = this;
@@ -1203,11 +1229,15 @@
         };
         return PWD;
     }(EventEmitter));
+    var ReactPWD$1 = ReactPWD;
     // register Recaptcha global onload callback
     window.addEventListener("load", function () {
         verifyCallback.call(window.pwd);
     });
 
-    return PWD;
+    exports.ReactPWD = ReactPWD$1;
+    exports.default = PWD;
+
+    Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

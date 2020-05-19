@@ -1,7 +1,8 @@
-import typescript from 'rollup-plugin-typescript2';
+import typescript from "rollup-plugin-typescript2";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import css from "rollup-plugin-css-only";
+import { terser } from "rollup-plugin-terser";
 
 import pkg from "./package.json";
 
@@ -22,6 +23,12 @@ export default {
       format: "umd",
       name: "PWD",
     },
+    {
+      file: pkg.umd.replace(".js", ".min.js"),
+      format: "umd",
+      name: "PWD",
+      plugins: [terser()],
+    },
   ],
   external: [...Object.keys(pkg.peerDependencies || {})],
   plugins: [
@@ -29,16 +36,7 @@ export default {
     commonjs({
       include: "node_modules/**",
     }),
-    typescript({
-      tsconfigOverride: {
-        compilerOptions: {
-          module: "ES6",
-          allowSyntheticDefaultImports: true,
-          declaration: true
-        }
-      }
-      // outDir:"dist"
-    }),
+    typescript(),
     css({ output: "dist/styles.css" }),
   ],
 };
