@@ -1,6 +1,6 @@
-import typescript from '@rollup/plugin-typescript';
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
+import typescript from 'rollup-plugin-typescript2';
+import resolve from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
 import css from "rollup-plugin-css-only";
 
 import pkg from "./package.json";
@@ -20,7 +20,7 @@ export default {
     {
       file: pkg.umd,
       format: "umd",
-      name:"PWD"
+      name: "PWD",
     },
   ],
   external: [...Object.keys(pkg.peerDependencies || {})],
@@ -30,9 +30,15 @@ export default {
       include: "node_modules/**",
     }),
     typescript({
-      allowSyntheticDefaultImports: true
-      
+      tsconfigOverride: {
+        compilerOptions: {
+          module: "ES6",
+          allowSyntheticDefaultImports: true,
+          declaration: true
+        }
+      }
+      // outDir:"dist"
     }),
-    css({ output: "dist/bundle.css" }),
+    css({ output: "dist/styles.css" }),
   ],
 };

@@ -3,10 +3,12 @@
         <title>PWD SDK Demo</title>
     </head>
     <body>
-    <div id="myTerm" style="width 500px; height: 500px;"></div>
+    <div id="myTerm" style="width: 500px; height: 500px;"></div>
+    <link rel="stylesheet" href="./dist/styles.css" /> 
     <script src="./dist/pwd.js"></script>
     <script>
-        PWD.newSession([{selector: '#myTerm'}]);
-    </script>                                                                                                                                                                                                                                
+        pwd = new PWD();
+        pwd.newSession([{selector: '#myTerm'}]);
+    </script>                                                                         
     </body>
 </html>

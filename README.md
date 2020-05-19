@@ -15,10 +15,12 @@ Here's a minimal example of the SDK usage:
     </head>
     <body>
     <div id="myTerm" style="width 500px; height: 500px;"></div>
+    <link rel="stylesheet" href="./dist/styled.css" /> 
     <script src="./dist/pwd.js"></script>
     <script>
+        pwd = new PWD();
         pwd.newSession([{selector: '#myTerm'}]);
-    </script>                                                                                                                                                                                                                                
+    </script>                                                                         
     </body>
 </html>
 ```
