@@ -64,9 +64,10 @@ import EventEmitter from 'wolfy87-eventemitter'
       var anchor = actions[n];
       var port = anchor.getAttribute("data-port");
       var protocol = anchor.getAttribute("data-protocol") || 'http:';
+      var hostPrefix = anchor.getAttribute("data-host-prefix") && anchor.getAttribute("data-host-prefix").concat('-') || '';
       var link;
       if (port) {
-        link = protocol + '//'+ instance.proxy_host + '-' + port + '.direct.' + self.opts.baseUrl.split('/')[2] + anchor.attributes.href.value;
+        link = protocol + '//'+ hostPrefix + instance.proxy_host + '-' + port + '.direct.' + self.opts.baseUrl.split('/')[2] + anchor.attributes.href.value;
       }
       var openFn = function(link) {
         return function(evt) {
