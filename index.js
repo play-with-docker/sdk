@@ -106,6 +106,7 @@ import EventEmitter from 'wolfy87-eventemitter'
     this.opts.baseUrl = this.opts.baseUrl || 'https://labs.play-with-docker.com';
     this.opts.ports = this.opts.ports || [];
     this.opts.ImageName = this.opts.ImageName || '';
+    this.opts.InstanceEnvs = this.opts.InstanceEnvs || [];
     this.opts.oauthProvider = this.opts.oauthProvider || 'docker';
   }
 
@@ -343,6 +344,7 @@ import EventEmitter from 'wolfy87-eventemitter'
   pwd.prototype.createInstance = function(opts, callback) {
     var self = this;
     opts.ImageName = opts.ImageName || self.opts.ImageName;
+    opts.InstanceEnvs = opts.InstanceEnvs || self.opts.InstanceEnvs;
     //TODO handle http connection errors
     sendRequest({
       method: 'POST',
