@@ -344,7 +344,7 @@ import EventEmitter from 'wolfy87-eventemitter'
   pwd.prototype.createInstance = function(opts, callback) {
     var self = this;
     opts.ImageName = opts.ImageName || self.opts.ImageName;
-    opts.InstanceEnvs = opts.InstanceEnvs || self.opts.InstanceEnvs;
+    opts.Envs = opts.InstanceEnvs || self.opts.InstanceEnvs;
     //TODO handle http connection errors
     sendRequest({
       method: 'POST',
