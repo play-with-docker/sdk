@@ -3,6 +3,7 @@
   "version": "3.0.0",
   "description": "PWD sdk",
   "main": "dist/index.js",
+  "mainReact": "react/index.js",
   "module": "dist/index.es.js",
   "umd": "dist/pwd.js",
   "scripts": {
@@ -30,7 +31,8 @@
     "url": "git+https://github.com/play-with-docker/sdk.git"
   },
   "files": [
-    "dist"
+    "dist",
+    "react"
   ],
   "keywords": [],
   "author": "",
@@ -43,7 +45,7 @@
     "reconnecting-websocket": "^3.2.2",
     "rollup-plugin-typescript2": "^0.27.1",
     "wolfy87-eventemitter": "^5.2.4",
-    "xterm": "^4.6.0",
+    "xterm": "^4.7.0",
     "xterm-addon-fit": "^0.4.0"
   },
   "peerDependencies": {

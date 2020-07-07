@@ -16,11 +16,12 @@ export function registerInputHandlers(termName, instance) {
   var self = this;
   // Attach block actions
   var actions = document.querySelectorAll('code[class*="' + termName + '"]');
-  for (var n = 0; n < actions.length; ++n) {
-    actions[n].addEventListener("click", () => {
+
+  actions.forEach((a) => {
+    a.addEventListener("click", function () {
       self.socket.emit("instance terminal in", instance.name, this.innerText);
     });
-  }
+  });
 }
 
 export function registerPortHandlers(termName, instance) {
@@ -51,9 +52,11 @@ export function registerPortHandlers(termName, instance) {
         }
       };
     };
-    anchor.addEventListener("click", () => openFn(link));
+    anchor.addEventListener("click", function () {
+      openFn(link);
+    });
     // anchor.onauxclick = openFn(link);
-    anchor.addEventListener("contextmenu", () => {
+    anchor.addEventListener("contextmenu", function () {
       if (link) {
         this.setAttribute("href", link);
       }
@@ -62,23 +65,23 @@ export function registerPortHandlers(termName, instance) {
 }
 
 export function sendRequest(req, callback) {
-    var request = new XMLHttpRequest();
-    var asyncReq = !req.sync;
-    request.open(req.method, req.url, asyncReq);
-  
-    if (req.opts && req.opts.headers) {
-      for (var key in req.opts.headers) {
-        request.setRequestHeader(key, req.opts.headers[key]);
-      }
-    }
-    request.withCredentials = true;
-    request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-    request.onload = function () {
-      callback(request);
-    };
-    if (typeof req.data === "object" && req.data.constructor.name != "FormData") {
-      request.send(JSON.stringify(req.data));
-    } else {
-      request.send(req.data);
+  var request = new XMLHttpRequest();
+  var asyncReq = !req.sync;
+  request.open(req.method, req.url, asyncReq);
+
+  if (req.opts && req.opts.headers) {
+    for (var key in req.opts.headers) {
+      request.setRequestHeader(key, req.opts.headers[key]);
     }
   }
+  request.withCredentials = true;
+  request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+  request.onload = function () {
+    callback(request);
+  };
+  if (typeof req.data === "object" && req.data.constructor.name != "FormData") {
+    request.send(JSON.stringify(req.data));
+  } else {
+    request.send(req.data);
+  }
+}

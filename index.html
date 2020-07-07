@@ -1,14 +1,18 @@
 <html>
-    <head>
-        <title>PWD SDK Demo</title>
-    </head>
-    <body>
-    <div id="myTerm" style="width: 500px; height: 500px;"></div>
-    <link rel="stylesheet" href="./dist/styles.css" /> 
+  <head>
+    <title>PWD SDK Demo</title>
+  </head>
+  <body>
+    <div class="term1" style="width: 100%; height: 500px;"></div>
+    <div class="term2" style="width: 100%; height: 500px; display: none;"></div>
+    <pre><code class="language-.term1">docker-compose -f jenkins.yml up -d
+    </code></pre>
+    <link rel="stylesheet" href="./dist/styles.css" />
     <script src="./dist/pwd.js"></script>
     <script>
-        pwd = new PWD();
-        pwd.newSession([{selector: '#myTerm'}]);
-    </script>                                                                         
-    </body>
+      pwd = new PWD();
+      pwd.newSession([{ selector: ".term1" }, { selector: ".term2" }]);
+    </script>
+    
+  </body>
 </html>

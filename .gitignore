@@ -1,5 +1,5 @@
 node_modules
-dist
+react
 .rpt2_cache
 .DS_Store
 src/_original.js

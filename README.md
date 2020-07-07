@@ -62,8 +62,9 @@ and then browse to [localhost:8080](http://localhost:8080).
 
 ```jsx
 import { useEffect, useState } from "react";
-import PWD, { ReactPWD } from "pwd-sdk";
-import "sdk/dist/styles.css";
+import PWD from "pwd-sdk";
+import ReactPWD from "pwd-sdk/react"
+import "pwd-sdk/dist/styles.css";
 
 export default () => {
   const [pwd, setPWD] = useState();

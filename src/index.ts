@@ -10,8 +10,6 @@ import {
   sendRequest,
 } from "./utils";
 
-import ReactComponent  from "./react";
-
 const Terminal = xterm.Terminal;
 
 class PWD extends EventEmitter {
@@ -22,7 +20,6 @@ class PWD extends EventEmitter {
   opts: any = {};
   socket = null;
   terms = [];
-  fitAddon = null;
   setOpts(opts) {
     var opts = opts || {};
     this.opts = opts;
@@ -227,6 +224,7 @@ class PWD extends EventEmitter {
         });
       }
     });
+
     window.onresize = function () {
       self.resize();
     };
@@ -249,7 +247,21 @@ class PWD extends EventEmitter {
     );
   }
   resize() {
-    this.fitAddon.fit();
+    const instances = this.getInstances();
+    instances.forEach((i) => {
+      i.terms.forEach((t) => {
+        setTimeout(() => {
+          const cols = t.fitAddon.proposeDimensions().cols;
+          if (cols == Infinity) {
+            t.resize(10, 10);
+          }
+          // is visible
+          if (t.element.clientWidth) {
+            t.fitAddon.fit();
+          }
+        }, 300);
+      });
+    });
   }
   createInstance = function (opts, callback) {
     var self = this;
@@ -356,6 +368,9 @@ class PWD extends EventEmitter {
       }
     );
   }
+  getInstances() {
+    return Object.keys(this.instances).map((k) => this.instances[k]);
+  }
   createTerminal(term, name) {
     var self = this;
     var i = this.instances[name];
@@ -364,8 +379,9 @@ class PWD extends EventEmitter {
     const elements = document.querySelectorAll(term.selector);
     for (var n = 0; n < elements.length; ++n) {
       var t: any = new Terminal({ cursorBlink: false });
-      this.fitAddon = new FitAddon();
-      t.loadAddon(this.fitAddon);
+      const fitAddon = new FitAddon();
+      t.loadAddon(fitAddon);
+      t.fitAddon = fitAddon;
 
       t.open(elements[n], { focus: true });
       t.onData((d) => {
@@ -416,9 +432,6 @@ class PWD extends EventEmitter {
 }
 
 export default PWD;
-
-
-export const ReactPWD = ReactComponent;
 // register Recaptcha global onload callback
 window.addEventListener("load", () => {
   verifyCallback.call((window as any).pwd);

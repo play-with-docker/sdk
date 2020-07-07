@@ -6,7 +6,19 @@ import { terser } from "rollup-plugin-terser";
 
 import pkg from "./package.json";
 
-export default {
+const shared = {
+  external: [...Object.keys(pkg.peerDependencies || {})],
+  plugins: [
+    resolve(),
+    commonjs({
+      include: "node_modules/**",
+    }),
+    typescript(),
+    css({ output: "dist/styles.css" }),
+  ],
+}
+
+export default [{
   input: "src/index.ts",
   output: [
     {
@@ -20,23 +32,26 @@ export default {
     },
     {
       file: pkg.umd,
-      format: "umd",
-      name: "PWD",
+      format: "iife",
+      name: "PWD"
     },
     {
       file: pkg.umd.replace(".js", ".min.js"),
-      format: "umd",
+      format: "iife",
       name: "PWD",
       plugins: [terser()],
     },
   ],
-  external: [...Object.keys(pkg.peerDependencies || {})],
-  plugins: [
-    resolve(),
-    commonjs({
-      include: "node_modules/**",
-    }),
-    typescript(),
-    css({ output: "dist/styles.css" }),
+  ...shared
+},{
+  input: "src/react.ts",
+  output: [
+    {
+      file: pkg.mainReact,
+      format: "cjs",
+      exports: "named",
+    },
   ],
-};
+  ...shared
+}];
+
