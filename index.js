@@ -388,6 +388,26 @@ import EventEmitter from 'wolfy87-eventemitter'
   }
 
 
+  pwd.prototype.uploadToPath = function(name, path, data, callback) {
+    var self = this;
+    sendRequest({
+      method: 'POST',
+      url: self.opts.baseUrl + '/sessions/' + this.sessionId + '/instances/' + name + '/uploads?path=' + encodeURIComponent(path),
+      opts: {},
+      data: data
+    }, function(response) {
+      if (response.status == 200) {
+        if (callback) {
+            callback(undefined);
+        }
+      } else {
+        if (callback) {
+            callback(new Error());
+        }
+      }
+    });
+  }
+
   pwd.prototype.setup = function(data, callback) {
     var self = this;
     sendRequest({
