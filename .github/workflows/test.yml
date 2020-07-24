@@ -1,0 +1,23 @@
+name: Test
+on:
+  pull_request:
+    branches:
+    - '**'
+  push:
+    branches:
+    - master
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Install Node
+      uses: actions/setup-node@v2
+      with:
+        node-version: 12.8.3
+    - run: npm install
+    - name: Re-run production build
+      run: npm run build -- -p
+    - name: Verify commit is clean
+      run: test -z "$(git status --porcelain)" || (git status; git diff; false)

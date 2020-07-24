@@ -4,7 +4,7 @@
   "description": "PWD sdk",
   "main": "sdk.js",
   "scripts": {
-    "build": "webpack -p"
+    "build": "webpack"
   },
   "repository": {
     "type": "git",
@@ -18,9 +18,10 @@
   },
   "homepage": "https://github.com/play-with-docker/sdk#readme",
   "devDependencies": {
-    "css-loader": "^0.28.2",
+    "css-loader": "^3.6.0",
     "style-loader": "^0.18.0",
-    "webpack": "^2.6.0"
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.12"
   },
   "dependencies": {
     "reconnecting-websocket": "^3.2.2",
