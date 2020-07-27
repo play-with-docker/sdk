@@ -18,6 +18,14 @@ interface ReactPWDProps {
   pwd: PWD;
 }
 
+export const usePWD = (pwd: PWD) => {
+  const [common, setCommon] = useState();
+  useEffect(() => {
+    setCommon(pwd);
+  }, []);
+  return common;
+};
+
 export const ReactPWD: FC<ReactPWDProps> = (props) => {
   const { pwd, name } = props;
   const [hasStarted, setHasStarted] = useState(false);
