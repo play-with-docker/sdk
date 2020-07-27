@@ -290,8 +290,14 @@ class PWD extends EventEmitter {
       }
     );
   };
-  upload(name, data, callback) {
+  upload(name, opts, callback) {
     var self = this;
+    let {data, path, url} = opts;
+    var params = new URLSearchParams();
+
+    if (url)  params.append("url", url);
+    if (path) params.append("path", path);
+
     sendRequest(
       {
         method: "POST",
@@ -301,9 +307,9 @@ class PWD extends EventEmitter {
           this.sessionId +
           "/instances/" +
           name +
-          "/uploads",
-        opts: {},
-        data: data,
+          "/uploads" +
+          "?" + params.toString(),
+        data,
       },
       function (response) {
         if (response.status == 200) {
