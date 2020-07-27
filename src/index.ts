@@ -290,40 +290,31 @@ class PWD extends EventEmitter {
       }
     );
   };
-  upload(name, opts, callback) {
+  upload(name, opts, callback: any = () => {}) {
     var self = this;
-    let {data, path, url} = opts;
-    var params = new URLSearchParams();
+    let { data, path = "", url = "" } = opts;
+    const { baseUrl } = this.opts;
+    const sessionId = this.sessionId;
 
-    if (url)  params.append("url", url);
-    if (path) params.append("path", path);
+    var params = new URLSearchParams({
+      url,
+      path,
+    });
+
+    const requestURL =
+      baseUrl + "/sessions/" + sessionId + "/instances/" + name + "/uploads";
 
     sendRequest(
       {
         method: "POST",
-        url:
-          self.opts.baseUrl +
-          "/sessions/" +
-          this.sessionId +
-          "/instances/" +
-          name +
-          "/uploads" +
-          "?" + params.toString(),
+        url: requestURL + "?" + params.toString(),
         data,
       },
       function (response) {
-        if (response.status == 200) {
-          if (callback) {
-            callback(undefined);
-          }
-        } else {
-          if (callback) {
-            callback(new Error());
-          }
-        }
+        callback(response.status == 200 ? undefined : new Error());
       }
     );
-  }
+  };
   setup(data, callback) {
     var self = this;
     sendRequest(
