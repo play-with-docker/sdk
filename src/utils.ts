@@ -22,6 +22,17 @@ export function registerInputHandlers(termName, instance) {
       self.socket.emit("instance terminal in", instance.name, this.innerText);
     });
   });
+
+  actions = document.querySelectorAll('[data-upload-term*="' + termName + '"]');
+  actions.forEach((a) => {
+    var path = a.getAttribute("data-upload-path");
+    var url = a.getAttribute("data-source-url");
+    a.addEventListener("click", function () {
+        // TODO decide callback action
+        self.upload(instance.name, {path, url});
+    });
+  });
+  // Attach file uploads
 }
 
 export function registerPortHandlers(termName, instance) {
