@@ -15,10 +15,12 @@ Here's a minimal example of the SDK usage:
     </head>
     <body>
     <div id="myTerm" style="width 500px; height: 500px;"></div>
+    <link rel="stylesheet" href="./dist/styled.css" /> 
     <script src="./dist/pwd.js"></script>
     <script>
+        pwd = new PWD();
         pwd.newSession([{selector: '#myTerm'}]);
-    </script>                                                                                                                                                                                                                                
+    </script>                                                                         
     </body>
 </html>
 ```
@@ -34,6 +36,53 @@ You can easily test your page with the SDK by running the following from the roo
 docker run --name sdktest -v $PWD:/usr/share/nginx/html:ro -d -it -p 8080:80 nginx
 ```
 and then browse to [localhost:8080](http://localhost:8080).
+
+
+## Using it with Vanilla JS
+
+```html
+<html>
+    <head>
+        <title>PWD SDK</title>
+    </head>
+    <body>
+    <div id="myTerm" style="width: 500px; height: 500px;"></div>
+    <link rel="stylesheet" href="https://unpkg.com/pwd-sdk@3.0.0/dist/styles.css" /> 
+    <script src="https://unpkg.com/pwd-sdk@3.0.0/dist/pwd.min.js"></script>
+    <script>
+        pwd = new PWD();
+        pwd.newSession([{selector: '#myTerm'}]);
+    </script>                                                                         
+    </body>
+</html>
+```
+
+
+## Using it with React
+
+```jsx
+import { useEffect, useState } from "react";
+import PWD from "pwd-sdk";
+import ReactPWD from "pwd-sdk/react"
+import "pwd-sdk/dist/styles.css";
+
+export default () => {
+  const [pwd, setPWD] = useState();
+  useEffect(() => {
+    setPWD(new PWD());
+  }, []);
+  return (
+    <div>
+      <div>
+        <ReactPWD pwd={pwd} name="1" />
+      </div>
+      <div>
+        <ReactPWD pwd={pwd} name="2" />
+      </div>
+    </div>
+  );
+};
+```
 
 
 ## Building the SDK
