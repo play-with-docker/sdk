@@ -290,7 +290,7 @@ class PWD extends EventEmitter {
       }
     );
   };
-  upload(name, opts, callback: any = () => {}) {
+  upload(name, opts, callback = (any) => {}) {
     var self = this;
     let { data, path = "", url = "" } = opts;
     const { baseUrl } = this.opts;
