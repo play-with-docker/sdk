@@ -25,11 +25,26 @@ export function registerInputHandlers(termName, instance) {
 
   actions = document.querySelectorAll('[data-upload-term*="' + termName + '"]');
   actions.forEach((a) => {
-    var path = a.getAttribute("data-upload-path");
-    var url = a.getAttribute("data-source-url");
+    var path = a.getAttribute("data-upload-path") || undefined;
+    var url = a.getAttribute("data-source-url") || undefined;
+    var dataSrc = a.getAttribute("data-upload-src") || undefined;
+
+    let data;
+    if (dataSrc) {
+        let parts = dataSrc.split(";");
+        let formData = new FormData();
+
+        // Decode base64 to ascii
+        let binData = atob(dataSrc.split(",")[1])
+        var blob = new Blob([binData], { type: "text/plain"});
+        formData.append("file", blob, parts[1].split("=")[1]);
+        data = formData;
+    }
+
+
     a.addEventListener("click", function () {
         // TODO decide callback action
-        self.upload(instance.name, {path, url});
+        self.upload(instance.name, {path, url, data});
     });
   });
   // Attach file uploads
