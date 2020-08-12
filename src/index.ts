@@ -27,6 +27,7 @@ class PWD extends EventEmitter {
       this.opts.baseUrl || "https://labs.play-with-docker.com";
     this.opts.ports = this.opts.ports || [];
     this.opts.ImageName = this.opts.ImageName || "";
+    this.opts.Envs = this.opts.Envs || [];
     this.opts.oauthProvider = this.opts.oauthProvider || "docker";
   }
   login(cb) {
@@ -266,6 +267,7 @@ class PWD extends EventEmitter {
   createInstance = function (opts, callback) {
     var self = this;
     opts.ImageName = opts.ImageName || self.opts.ImageName;
+    opts.Envs = opts.Envs || self.opts.Envs;
     //TODO handle http connection errors
     sendRequest(
       {
