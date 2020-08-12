@@ -28,6 +28,7 @@ class PWD extends EventEmitter {
     this.opts.ports = this.opts.ports || [];
     this.opts.ImageName = this.opts.ImageName || "";
     this.opts.Envs = this.opts.Envs || [];
+    this.opts.Networks = this.opts.Networks || [];
     this.opts.oauthProvider = this.opts.oauthProvider || "docker";
   }
   login(cb) {
@@ -268,6 +269,7 @@ class PWD extends EventEmitter {
     var self = this;
     opts.ImageName = opts.ImageName || self.opts.ImageName;
     opts.Envs = opts.Envs || self.opts.Envs;
+    opts.Networks = opts.Networks || self.opts.Networks;
     //TODO handle http connection errors
     sendRequest(
       {
@@ -411,7 +413,7 @@ class PWD extends EventEmitter {
   terminal(term, callback?) {
     var self = this;
     var hostname = "node" + (this.terms.indexOf(term) + 1);
-    this.createInstance({ type: term.type, Hostname: hostname }, function (
+    this.createInstance({ type: term.type, Hostname: hostname, ImageName: term.ImageName, Envs: term.Envs, Networks: term.Networks }, function (
       err,
       instance
     ) {
