@@ -19,7 +19,12 @@ export function registerInputHandlers(termName, instance) {
 
   actions.forEach((a) => {
     a.addEventListener("click", function () {
-      self.socket.emit("instance terminal in", instance.name, this.innerText);
+      let cmd = this.innerText;
+      let dataCmd = this.parentElement.getAttribute("data-command-src");
+      if (dataCmd) {
+          cmd = atob(dataCmd);
+      }
+      self.socket.emit("instance terminal in", instance.name, cmd);
     });
   });
 
