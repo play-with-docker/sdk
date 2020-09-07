@@ -85,4 +85,6 @@ export default () => {
 
 ## Building the SDK
 
-Clone this repo and run `npm install && npm run build`
+Requires an installation of [`yarn`](https://yarnpkg.com/).
+
+Clone this repo and run `yarn install && yarn run build`
