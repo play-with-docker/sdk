@@ -297,6 +297,10 @@ class PWD extends EventEmitter {
   upload(name, opts, callback = (any) => {}) {
     var self = this;
     let { data, path = "", url = "" } = opts;
+    if (data && url) {
+      callback(new Error(`Both data and url can't be set when uploading files`))
+      return
+    }
     const { baseUrl } = this.opts;
     const sessionId = this.sessionId;
 
