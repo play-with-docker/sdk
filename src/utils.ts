@@ -36,12 +36,16 @@ export function registerInputHandlers(termName, instance) {
 
     let data;
     if (dataSrc) {
+        let parts = dataSrc.split(":");
         let formData = new FormData();
-        let binData = atob(dataSrc);
+
+        // Decode base64 to ascii
+        let binData = atob(parts[1])
         var blob = new Blob([binData], { type: "text/plain"});
-        formData.append("file", blob);
+        formData.append("file", blob, parts[0]);
         data = formData;
     }
+
     a.addEventListener("click", function () {
         // TODO decide callback action
         self.upload(instance.name, {path, url, data});
