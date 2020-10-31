@@ -104,6 +104,7 @@ class PWD extends EventEmitter {
             cb();
           });
         } else if (resp.status == 403) {
+          this.emitEvent('unauthorized');
           //TODO login should return error and handle it
           this.login(function () {
             this.createSession(cb);
