@@ -34,21 +34,22 @@ export function registerInputHandlers(termName, instance) {
     var url = a.getAttribute("data-source-url") || undefined;
     var dataSrc = a.getAttribute("data-upload-src") || undefined;
 
-    let data;
+    let data, name;
     if (dataSrc) {
-        let parts = dataSrc.split(":");
+        let [dname, bdata] = dataSrc.split(":");
+        name = dname;
         let formData = new FormData();
 
         // Decode base64 to ascii
-        let binData = atob(parts[1])
+        let binData = atob(bdata);
         var blob = new Blob([binData], { type: "text/plain"});
-        formData.append("file", blob, parts[0]);
+        formData.append("file", blob, name);
         data = formData;
     }
 
     a.addEventListener("click", function () {
         // TODO decide callback action
-        self.upload(instance.name, {path, url, data});
+        self.upload(instance.name, {path, url, data, name});
     });
   });
   // Attach file uploads

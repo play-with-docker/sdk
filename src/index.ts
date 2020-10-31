@@ -297,7 +297,7 @@ class PWD extends EventEmitter {
   };
   upload(name, opts, callback = (any) => {}) {
     var self = this;
-    let { data, path = "", url = "" } = opts;
+    let { name:filename, data, path = "", url = "" } = opts;
     if (data && url) {
       callback(new Error(`Both data and url can't be set when uploading files`))
       return
@@ -322,7 +322,7 @@ class PWD extends EventEmitter {
       },
       function (response) {
         let err = response.status == 200 ? undefined : new Error();
-        self.emitEvent("uploadEnd", [err]);
+        self.emitEvent("uploadEnd", [err, path + "/" + filename , self.instances[name]]);
         callback(err);
       }
     );
