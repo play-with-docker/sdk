@@ -1,6 +1,6 @@
 {
   "name": "pwd-sdk",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "PWD sdk",
   "main": "dist/index.js",
   "mainReact": "react/index.js",
