@@ -312,6 +312,7 @@ class PWD extends EventEmitter {
     const requestURL =
       baseUrl + "/sessions/" + sessionId + "/instances/" + name + "/uploads";
 
+    self.emitEvent("uploadStart");
     sendRequest(
       {
         method: "POST",
@@ -319,7 +320,9 @@ class PWD extends EventEmitter {
         data,
       },
       function (response) {
-        callback(response.status == 200 ? undefined : new Error());
+        let err = response.status == 200 ? undefined : new Error();
+        self.emitEvent("uploadEnd", [err]);
+        callback(err);
       }
     );
   };
