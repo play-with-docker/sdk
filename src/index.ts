@@ -204,7 +204,17 @@ class PWD extends EventEmitter {
         }
       }
     });
-    this.socket.on("instance terminal out", function (name, data) {
+    
+    this.socket.on("instance new", function(name: string) {
+      var instance = self.instances[name];
+      // Could have been triggered through the SDK or the backend
+      // That's why we need to check this here
+      if (instance) {
+       self.emitEvent("instanceNew", [instance]);
+      }
+    });
+
+    this.socket.on("instance terminal out", function (name: string, data) {
       var instance = self.instances[name];
       if (instance && instance.terms) {
         instance.terms.forEach(function (term) {
