@@ -93,7 +93,7 @@ class PWD extends EventEmitter {
           var sessionData = JSON.parse(resp.responseText);
           // fetch current scheme from opts to use in the new session hostname
           this.opts.baseUrl =
-            this.opts.baseUrl.split("/")[0] + "//" + sessionData.hostname;
+          this.opts.baseUrl.split("/")[0] + "//" + sessionData.hostname;
           this.init(sessionData.session_id, this.opts, () => {
             this.terms.forEach((term) => {
               // Create terminals only for those elements that exist at least once in the DOM
@@ -206,12 +206,8 @@ class PWD extends EventEmitter {
     });
     
     this.socket.on("instance new", function(name: string) {
-      var instance = self.instances[name];
-      // Could have been triggered through the SDK or the backend
-      // That's why we need to check this here
-      if (instance) {
-       self.emitEvent("instanceNew", [instance]);
-      }
+       // New instance has been created
+       self.emitEvent("instanceNew", [name]);
     });
 
     this.socket.on("instance terminal out", function (name: string, data) {
@@ -425,6 +421,9 @@ class PWD extends EventEmitter {
       });
       self.instanceBuffer[name] = "";
     }
+
+    // Emit event with instance + terms created
+    self.emitEvent("instanceCreate", [i]);
 
     return i.terms;
   }
