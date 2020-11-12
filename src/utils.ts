@@ -107,8 +107,11 @@ export function sendRequest(req, callback) {
   }
   request.withCredentials = true;
   request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+  request.onerror = function (error) {
+    callback(error);
+  };
   request.onload = function () {
-    callback(request);
+    callback(undefined, request);
   };
   if (typeof req.data === "object" && req.data.constructor.name != "FormData") {
     request.send(JSON.stringify(req.data));

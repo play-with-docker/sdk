@@ -86,7 +86,11 @@ class PWD extends EventEmitter {
           "=" +
           encodeURIComponent("90m"),
       },
-      (resp) => {
+      (err, resp) => {
+        if (err) {
+          cb(err);
+          return
+        }
         //TODO handle errors
         if (resp.status == 200) {
           this.emitEvent("init");
@@ -120,7 +124,9 @@ class PWD extends EventEmitter {
       this.terms = terms;
       this.createSession(function (err) {
         if (err) {
-          console.warn("Could not create session");
+          console.warn("Could not create session", err);
+          !callback || callback(err);
+          return
         }
         !callback || callback();
       });
@@ -137,7 +143,11 @@ class PWD extends EventEmitter {
           opts: { headers: { "Content-type": "application/json" } },
           sync: true,
         },
-        function (response) {
+        function (err, response) {
+          if (err) {
+            callback(err);
+            return
+          }
           if (response.status == 200) {
             callback();
           } else {
@@ -154,7 +164,11 @@ class PWD extends EventEmitter {
         url: this.opts.baseUrl + "/users/me",
         opts: { headers: { "Content-type": "application/json" } },
       },
-      function (response) {
+      function (err,response) {
+        if (err) {
+          callback(err);
+          return
+        }
         if (response.status == 200) {
           var u = JSON.parse(response.responseText);
           callback(u);
@@ -243,7 +257,11 @@ class PWD extends EventEmitter {
         method: "GET",
         url: this.opts.baseUrl + "/sessions/" + sessionId,
       },
-      function (response) {
+      function (err, response) {
+        if (err) {
+          callback(err);
+          return
+        }
         var session = JSON.parse(response.responseText);
         for (var name in session.instances) {
           var i = session.instances[name];
@@ -285,16 +303,20 @@ class PWD extends EventEmitter {
         opts: { headers: { "Content-type": "application/json" } },
         data: opts,
       },
-      function (response) {
+      function (err, response) {
+        if (err) {
+          callback(err);
+          return
+        }
         if (response.status == 200) {
           var i = JSON.parse(response.responseText);
           i.terms = [];
           self.instances[i.name] = i;
           callback(undefined, i);
         } else if (response.status == 409) {
-          var err = new Error();
-          (err as any).max = true;
-          callback(err);
+          var rerr = new Error();
+          (rerr as any).max = true;
+          callback(rerr);
         } else {
           callback(new Error());
         }
@@ -326,10 +348,14 @@ class PWD extends EventEmitter {
         url: requestURL + "?" + params.toString(),
         data,
       },
-      function (response) {
-        let err = response.status == 200 ? undefined : new Error();
-        self.emitEvent("uploadEnd", [err, path + "/" + filename , self.instances[name]]);
-        callback(err);
+      function (err, response) {
+        if (err) {
+          callback(err)
+          return
+        }
+        let rerr = response.status == 200 ? undefined : new Error();
+        self.emitEvent("uploadEnd", [rerr, path + "/" + filename , self.instances[name]]);
+        callback(rerr);
       }
     );
   };
@@ -342,7 +368,11 @@ class PWD extends EventEmitter {
         opts: { headers: { "Content-type": "application/json" } },
         data: data,
       },
-      function (response) {
+      function (err, response) {
+        if (err) {
+          callback(err);
+          return
+        }
         if (response.status == 200) {
           if (callback) {
             callback(undefined);
@@ -370,7 +400,11 @@ class PWD extends EventEmitter {
         opts: { headers: { "Content-type": "application/json" } },
         data: { command: data },
       },
-      function (response) {
+      function (err, response) {
+        if (err) {
+          callback(err);
+          return
+        }
         if (response.status == 200) {
           if (callback) {
             callback(undefined);
