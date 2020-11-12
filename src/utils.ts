@@ -18,7 +18,8 @@ export function registerInputHandlers(termName, instance) {
   var actions = document.querySelectorAll('code[class*="' + termName + '"]');
 
   actions.forEach((a) => {
-    a.addEventListener("click", function () {
+    // The parent of <code> blocks is the whole <pre> block
+    a.parentElement.addEventListener("click", function () {
       let cmd = this.innerText;
       let dataCmd = this.parentElement.getAttribute("data-command-src");
       if (dataCmd) {
