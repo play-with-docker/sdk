@@ -21,7 +21,7 @@ export function registerInputHandlers(termName, instance) {
     // The parent of <code> blocks is the whole <pre> block
     a.parentElement.addEventListener("click", function () {
       let cmd = this.innerText;
-      let dataCmd = this.parentElement.getAttribute("data-command-src");
+      let dataCmd = this.getAttribute("data-command-src");
       if (dataCmd) {
           cmd = atob(dataCmd);
       }
